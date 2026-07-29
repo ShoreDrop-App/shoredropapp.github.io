@@ -14,6 +14,398 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "best-beaches-in-virginia-beach",
+    title: "The Best Beaches in Virginia Beach: A Local's 2026 Guide",
+    excerpt:
+      "Oceanfront, North End, Sandbridge, Chesapeake Bay & Croatan compared — find the best Virginia Beach spot for your day, whether you want waves, quiet, or family calm.",
+    category: "Beach Tips",
+    publishedAt: "2026-07-28",
+    image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+    imageAlt: "Virginia Beach shoreline at sunset",
+    sections: [
+      {
+        heading: "Virginia Beach isn't one beach — it's five distinct beach experiences",
+        paragraphs: [
+          "The busy, amenity-packed Oceanfront (Resort Beach) is best for first-timers and boardwalk lovers; the wide, quiet North End is best for relaxing and spreading out; Sandbridge is best for a secluded, Outer-Banks-style getaway; Chesapeake Bay Beach (Chic's Beach) has the calmest water for young kids; and Croatan is the go-to for surfers. Here's how to pick the right one.",
+        ],
+      },
+      {
+        heading: "The Oceanfront (Resort Beach): best for first-time visitors",
+        paragraphs: [
+          "This is the Virginia Beach you've seen on postcards — a three-mile boardwalk, the 34-foot King Neptune statue, hotels, restaurants, and attractions steps from the sand. It has the most amenities (public restrooms, lifeguards, food, parking garages) and the most energy, which also means the biggest summer crowds. Choose the Oceanfront if you want everything within walking distance and don't mind sharing the sand.",
+        ],
+      },
+      {
+        heading: "North End: best for space and quiet (and where ShoreDrop delivers)",
+        paragraphs: [
+          "North of about 42nd Street, the boardwalk ends and the beach opens up into the North End — one of the widest, most laid-back stretches in the city. Locals come here to escape the resort crowds, and it's a known spot for watching dolphins offshore. The trade-off: limited public parking and no public restroom facilities. That's exactly why it's ShoreDrop's home turf — we deliver and set up your chairs, umbrella, and cooler on the North End sand so you skip the parking scramble and the long haul from your car.",
+        ],
+      },
+      {
+        heading: "Sandbridge: best for a secluded getaway",
+        paragraphs: [
+          "About 20 minutes south of the Oceanfront, Sandbridge is often called \"the Outer Banks of Virginia.\" Five miles of quiet shoreline backed by the Back Bay National Wildlife Refuge, lined with vacation rentals instead of hotels. There's no boardwalk and few commercial amenities — that's the point. Sandbridge is best for families and couples who want calm, nature, and a rental-home base for the week.",
+        ],
+      },
+      {
+        heading: "Chesapeake Bay Beach (Chic's Beach): best for little kids",
+        paragraphs: [
+          "Also called Chick's Beach, this stretch sits off Shore Drive on the Chesapeake Bay side, north of the Oceanfront. Because it faces the Bay rather than the open Atlantic, the water is calmer and shallower — ideal for toddlers, paddleboarding, and kayaking. Nearby you'll find First Landing State Park, the Cape Henry Lighthouse, and the famous Lynnhaven oysters.",
+        ],
+      },
+      {
+        heading: "Croatan Beach: best for surfers",
+        paragraphs: [
+          "Just south of Rudee Inlet, Croatan is a quieter, locals-favorite beach with dedicated surfing areas, an on-site parking lot, lifeguards, and restrooms. If you or your kids want to learn to surf, this is where the lessons happen. It's calmer on the crowd front than the main Oceanfront but still has the amenities the North End lacks.",
+        ],
+      },
+      {
+        heading: "Quick comparison",
+        paragraphs: [
+          "Most amenities & energy: Oceanfront (Resort Beach)",
+          "Most space & quiet: North End",
+          "Most secluded / week-long stays: Sandbridge",
+          "Calmest water for young kids: Chesapeake Bay Beach (Chic's Beach)",
+          "Best for surfing: Croatan Beach",
+        ],
+      },
+      {
+        heading: "What is the least crowded beach in Virginia Beach?",
+        paragraphs: [
+          "The North End (north of ~42nd Street) and Sandbridge are the least crowded. Both offer wide, open sand and a quieter vibe than the main Oceanfront — with the trade-off of fewer public amenities and limited parking.",
+        ],
+      },
+      {
+        heading: "Which Virginia Beach beach is best for families with small children?",
+        paragraphs: [
+          "Chesapeake Bay Beach (Chic's Beach) has the calmest, shallowest water because it faces the Bay instead of the open ocean, making it the safest feel for toddlers. The Oceanfront is also family-friendly thanks to lifeguards and restrooms.",
+        ],
+      },
+      {
+        heading: "Is the North End of Virginia Beach worth it?",
+        paragraphs: [
+          "Yes — it's one of the widest and most relaxing beaches in the city. The main downsides are limited parking and no public restrooms. Booking a delivered beach setup through ShoreDrop removes the biggest hassle: hauling gear from a hard-to-find parking spot.",
+          "Skip the hauling wherever you land. ShoreDrop delivers premium chairs, umbrellas, coolers, and more directly to your spot on the Virginia Beach sand — set up before you arrive, packed up after you leave.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "best-time-to-visit-virginia-beach",
+    title: "Best Time to Visit Virginia Beach: Month-by-Month (2026)",
+    excerpt:
+      "When to visit Virginia Beach for weather, crowds, and price. A month-by-month guide to peak season, the shoulder-season sweet spots, and the year's big events.",
+    category: "Beach Tips",
+    publishedAt: "2026-07-28",
+    image:
+      "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80",
+    imageAlt: "Sunny beach day with chairs and umbrella",
+    sections: [
+      {
+        heading: "The best time to visit Virginia Beach is May through October",
+        paragraphs: [
+          "For warm water, full amenities, and the biggest event lineup, come in peak summer (June–August). For the best mix of warm weather, thinner crowds, and lower prices, target the shoulder seasons — May to early June, and September to October. Here's the month-by-month breakdown.",
+        ],
+      },
+      {
+        heading: "Spring (April–May): the season wakes up",
+        paragraphs: [
+          "April: Days warm into the 60s–70s°F. The ocean is still cold, but the calendar heats up with the Shamrock events, kite festivals, and — in years it runs — the Something in the Water festival, which unofficially kicks off beach season.",
+          "May: One of the best-value months. Highs reach the mid-70s, crowds are still light, and Memorial Day weekend marks the true start of summer. Great for a relaxed beach day before the peak-season rush.",
+        ],
+      },
+      {
+        heading: "Summer (June–August): peak season",
+        paragraphs: [
+          "This is Virginia Beach at full volume. Daytime highs sit in the low-to-high 80s°F, the ocean is warm enough for hours in the water, and the boardwalk, concerts, and festivals run non-stop.",
+          "June: Everything is open and the weather is reliably beautiful. Weekdays are still manageable; weekends fill up.",
+          "July: Peak of peak. Expect the warmest water, the biggest crowds, top hotel prices, and the toughest parking. The Fourth of July week is one of the busiest of the year.",
+          "August: Still packed, and home to the East Coast Surfing Championships (the country's longest-running surf contest) in late August.",
+          "Peak-season reality check: hotels book up months ahead for flagship weekends, and oceanfront parking is genuinely difficult. Booking your beach gear ahead of time — delivered and set up for you — is one of the easiest ways to sidestep the summer chaos.",
+        ],
+      },
+      {
+        heading: "Fall (September–October): the local's secret",
+        paragraphs: [
+          "Ask a Virginia Beach local when to visit and many will say September. The summer crowds thin out after Labor Day, but temperatures stay warm (mid-70s to low-80s°F) and the water is often still comfortable well into October.",
+          "September: Thinner crowds, warm water, and the Neptune Festival Boardwalk Weekend on the last weekend of the month — famous for its international sand-sculpting championship, live music, and 30 blocks of vendors.",
+          "October: Mild, uncrowded, and still pleasant for beach days early in the month, with events like the Craft Beer Festival rounding out the season.",
+        ],
+      },
+      {
+        heading: "Winter (November–March): quiet and off-season",
+        paragraphs: [
+          "Winters are mild by East Coast standards — highs in the upper 30s to low 50s°F — but too cold for a traditional beach day. It's the least crowded and cheapest time to visit, good for whale-watching season, indoor attractions like the Virginia Aquarium, and quiet beach walks.",
+        ],
+      },
+      {
+        heading: "So when should you go?",
+        paragraphs: [
+          "Best overall weather + events: June–August",
+          "Best value (fewer crowds, lower prices, still warm): May and September–October",
+          "Cheapest and quietest: November–March",
+        ],
+      },
+      {
+        heading: "What is the cheapest month to visit Virginia Beach?",
+        paragraphs: [
+          "Outside of summer, the winter months (November–March) are cheapest. For a cheap trip you can still swim on, May and September offer lower prices than peak summer while keeping warm weather and comfortable water.",
+        ],
+      },
+      {
+        heading: "When is peak season in Virginia Beach?",
+        paragraphs: [
+          "Peak season runs from June through August, with the busiest weekends around the Fourth of July and Labor Day. Expect the highest prices and the hardest parking during this window.",
+        ],
+      },
+      {
+        heading: "Is September a good time to visit Virginia Beach?",
+        paragraphs: [
+          "Yes — September is widely considered the sweet spot. Crowds drop after Labor Day, temperatures stay warm, the ocean is still comfortable, and the Neptune Festival caps the month.",
+          "Whatever month you pick, ShoreDrop makes the day effortless — premium beach chairs, umbrellas, and coolers delivered and set up on the sand before you arrive.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "how-to-keep-beach-umbrella-from-blowing-away",
+    title: "How to Keep a Beach Umbrella From Blowing Away",
+    excerpt:
+      "Beach umbrellas blow away because they're set up wrong. Here's how to anchor one safely in Virginia Beach wind — the angle, the depth, and the sand-anchor trick.",
+    category: "Beach Tips",
+    publishedAt: "2026-07-28",
+    image:
+      "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=1200&q=80",
+    imageAlt: "Beach umbrella on the sand",
+    sections: [
+      {
+        heading: "To keep a beach umbrella from blowing away",
+        paragraphs: [
+          "Tilt it into the wind, bury the pole deep with a rocking motion, and use a sand anchor or auger. A loose umbrella isn't just annoying — a wind-caught umbrella becomes a fast-moving hazard on a crowded beach. Here's how to set one up so it stays put, even on a breezy Virginia Beach afternoon.",
+        ],
+      },
+      {
+        heading: "Why do beach umbrellas blow away?",
+        paragraphs: [
+          "Most umbrellas fail for one of three reasons: the pole isn't buried deep enough, the umbrella is pointed straight up like a sail, or it's set in dry, loose sand near the top of the beach. Fix those three things and you fix the problem.",
+        ],
+      },
+      {
+        heading: "Step 1: Tilt the umbrella into the wind",
+        paragraphs: [
+          "Don't plant your umbrella straight up. Angle the top toward the wind so the canopy sheds air over the top instead of catching it like a sail. As the wind shifts through the day, adjust the tilt to keep it facing the breeze.",
+        ],
+      },
+      {
+        heading: "Step 2: Bury the pole deep — and rock it in",
+        paragraphs: [
+          "Push the pole in at your chosen angle, then twist and rock it back and forth as you drive it down. You want at least 12–16 inches in the sand. The rocking motion packs sand around the pole and locks it far better than just shoving it straight down.",
+        ],
+      },
+      {
+        heading: "Step 3: Set up on damp sand, not dry",
+        paragraphs: [
+          "Dry, powdery sand near the dunes won't hold. Move a little closer to the water and set up on firmer, damp sand — it grips the pole and any anchor far more securely.",
+        ],
+      },
+      {
+        heading: "Step 4: Use a sand anchor or auger",
+        paragraphs: [
+          "This is the single biggest upgrade. A screw-in sand auger (a plastic corkscrew base) or a sand-bag anchor dramatically increases holding power for a few dollars. Screw the auger in first, then insert your umbrella pole into it. If you don't have one, fill a bag or bucket with sand and hang it from the pole to add ballast.",
+        ],
+      },
+      {
+        heading: "Step 5: Know when to take it down",
+        paragraphs: [
+          "No anchor is bulletproof. If sustained winds pick up or a storm rolls in, close the umbrella and lay it flat. A wind-caught umbrella can injure someone several setups down the beach — when in doubt, take it down.",
+        ],
+      },
+      {
+        heading: "The easiest fix of all: let someone else handle it",
+        paragraphs: [
+          "Anchoring an umbrella correctly, every time, on unpredictable coastal wind is a skill. If you'd rather just enjoy the beach, ShoreDrop's crew sets up commercial-grade umbrellas properly anchored on the Virginia Beach sand before you arrive — and takes them down when you're done. No wrestling, no runaway umbrella, no stress.",
+        ],
+      },
+      {
+        heading: "How deep should a beach umbrella be buried?",
+        paragraphs: [
+          "Aim for at least 12–16 inches, driven in with a twisting, rocking motion so the sand packs tightly around the pole. Deeper and firmer is always better.",
+        ],
+      },
+      {
+        heading: "Do sand anchors for beach umbrellas actually work?",
+        paragraphs: [
+          "Yes. A screw-in sand auger or a sand-bag anchor is the most effective, low-cost way to keep an umbrella secure. It's the difference-maker most people are missing.",
+        ],
+      },
+      {
+        heading: "What wind speed is too strong for a beach umbrella?",
+        paragraphs: [
+          "There's no exact cutoff, but once you feel sustained gusts straining the canopy, it's time to close it. A loose umbrella in strong wind is a safety hazard to everyone nearby.",
+          "Want to skip the setup entirely? ShoreDrop delivers and properly anchors your umbrella, chairs, and gear on the Virginia Beach sand — ready before you arrive.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "beach-day-with-baby-toddler-virginia-beach",
+    title: "Beach Day With a Baby or Toddler in Virginia Beach",
+    excerpt:
+      "A stress-free Virginia Beach day with a baby or toddler is possible. The gear, timing, shade, and safety tips parents need — plus how to skip the heavy hauling.",
+    category: "Beach Tips",
+    publishedAt: "2026-07-28",
+    image:
+      "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=1200&q=80",
+    imageAlt: "Family beach day with a toddler",
+    sections: [
+      {
+        heading: "A great beach day with a baby or toddler comes down to three things",
+        paragraphs: [
+          "Shade, timing, and packing light. Set up in the morning before the heat and crowds peak, keep your little one out of direct sun, and bring only what you'll actually use. Here's how to pull off a calm, safe beach day with the youngest members of the family in Virginia Beach.",
+        ],
+      },
+      {
+        heading: "Choose the right beach",
+        paragraphs: [
+          "For babies and toddlers, calmer water is your friend. Chesapeake Bay Beach (Chic's Beach) faces the Bay instead of the open Atlantic, so the waves are gentler and the water shallower — ideal for tiny swimmers. If you want the wide, open space of the North End, know that it has limited parking and no public restrooms, so plan facilities around it. The main Oceanfront offers lifeguards and restrooms if you'd rather have amenities close by.",
+        ],
+      },
+      {
+        heading: "Time it right",
+        paragraphs: [
+          "Arrive early (before ~10 a.m.). Cooler temperatures, gentler sun, easier parking, and calmer crowds.",
+          "Plan around the nap. Many parents do a morning beach session, head back for a midday nap out of the heat, and return in the late afternoon when the sun softens.",
+          "Watch the UV window. The sun is harshest from roughly 10 a.m. to 4 p.m. — the exact hours you'll want reliable shade.",
+        ],
+      },
+      {
+        heading: "Nail the shade",
+        paragraphs: [
+          "Babies under 6 months should be kept out of direct sunlight entirely, and toddlers need consistent shade to avoid overheating. A properly anchored umbrella or a pop-up beach tent with UPF protection is non-negotiable. A tent doubles as a wind-sheltered spot for naps, diaper changes, and snack breaks.",
+        ],
+      },
+      {
+        heading: "The baby/toddler beach packing list",
+        paragraphs: [
+          "UPF swimwear, a wide-brim hat, and baby-safe (mineral) sunscreen for 6 months+",
+          "A shaded tent or well-anchored umbrella",
+          "A lightweight blanket or mat for a clean, sand-free zone",
+          "Plenty of water and familiar snacks",
+          "Extra diapers, wipes, and a sealable bag for the mess",
+          "A few simple sand toys — a bucket and shovel are plenty",
+          "A change of clothes for each kid",
+        ],
+      },
+      {
+        heading: "Keep it safe",
+        paragraphs: [
+          "Reapply sunscreen every two hours and after any time in the water.",
+          "Hydrate constantly — little ones overheat fast and won't always tell you.",
+          "Never turn your back on the water, even in ankle-deep surf. Toddlers move quickly.",
+          "Rinse off sand and salt before the ride home to avoid irritation.",
+        ],
+      },
+      {
+        heading: "The hardest part isn't the beach — it's everything around it",
+        paragraphs: [
+          "Any parent knows the real challenge is the logistics: hauling a tent, chairs, cooler, and a diaper bag across hot sand while carrying a baby, after circling for parking. That's the exact problem ShoreDrop solves. We deliver and set up your chairs, a shaded tent, cooler, and gear on the Virginia Beach sand before you arrive — so you walk up with just your child and your bag, and walk away without packing a thing.",
+        ],
+      },
+      {
+        heading: "What is the best Virginia Beach for toddlers?",
+        paragraphs: [
+          "Chesapeake Bay Beach (Chic's Beach) is a top pick because its Bay-facing water is calmer and shallower than the open ocean. The main Oceanfront is also toddler-friendly thanks to lifeguards and nearby restrooms.",
+        ],
+      },
+      {
+        heading: "Can babies go to the beach in the summer heat?",
+        paragraphs: [
+          "Yes, with precautions. Keep babies under 6 months fully shaded, go early or late to avoid peak sun, hydrate often, and use a UPF tent for a cool, protected spot. Avoid the harshest midday hours when you can.",
+        ],
+      },
+      {
+        heading: "How do you keep a toddler entertained at the beach?",
+        paragraphs: [
+          "Simple wins: a bucket and shovel for digging, shallow water play under close supervision, and a shaded home base for snacks and rest. You don't need much — toddlers love sand and water on their own.",
+          "Bringing a little one? ShoreDrop delivers a full family setup — shaded tent, chairs, cooler, and kids' gear — to your spot on the Virginia Beach sand, set up before you arrive.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "virginia-beach-parking-beach-access-guide",
+    title: "Virginia Beach Parking & Beach Access Guide (2026)",
+    excerpt:
+      "Where to park at the Virginia Beach Oceanfront, what the garages and meters cost, and how to skip the long haul from your car to the sand.",
+    category: "Beach Tips",
+    publishedAt: "2026-07-28",
+    image:
+      "https://images.unsplash.com/photo-1509233725247-49e657c54213?auto=format&fit=crop&w=1200&q=80",
+    imageAlt: "Oceanfront beach access path",
+    sections: [
+      {
+        heading: "Parking at the Virginia Beach Oceanfront",
+        paragraphs: [
+          "The Virginia Beach Oceanfront has three parking garages, several municipal surface lots, and metered on-street parking — but spots fill fast in summer, and the North End has very limited public parking. This guide covers where to park, what to expect to pay, and the part nobody warns you about: the long haul of gear from your car to the sand.",
+        ],
+      },
+      {
+        heading: "Where can you park at the Virginia Beach Oceanfront?",
+        paragraphs: [
+          "The city runs three types of public parking in the Resort Area:",
+          "Parking garages — Located near 9th Street, 20th Street, 25th Street, and Baltic Avenue. All three garages are open 24/7, and garages are the only option for overnight parking (non-oversized vehicles).",
+          "Municipal surface lots — Including 2nd Street, 4th Street, Rudee Loop, and the 19th Street lots. The 4th Street lot handles oversized and overnight vehicles year-round.",
+          "On-street metered parking — Paid spaces run along Atlantic Avenue from Rudee Loop up to the high 30s streets, plus the bordering side streets.",
+          "Rates and rules change seasonally, and the city moved to a new progressive rate structure in 2026. For current pricing, always check the official source: virginiabeach.gov/parking. All lots, garages, and meters accept cards, mobile-pay apps, and text-to-pay.",
+        ],
+      },
+      {
+        heading: "When do you have to pay for parking?",
+        paragraphs: [
+          "As a general rule, Resort Area meters are enforced daily from April 1 through October 31, and most on-street metered parking is free in the off-season (November 1–March 31) — with a couple of exceptions near 24½ and 25th Streets that are enforced year-round. In peak summer, arrive early; the closest lots and garages fill by mid-morning on nice weekends.",
+        ],
+      },
+      {
+        heading: "What about beach access at the North End?",
+        paragraphs: [
+          "Here's the catch most guides skip. North of about 42nd Street, the North End is one of the best, widest, quietest beaches in the city — but it has very limited public parking and no public restrooms. Access is mostly through residential side streets, some of which are permit-restricted. If you're heading to the North End, plan your parking and facilities carefully before you go.",
+        ],
+      },
+      {
+        heading: "The problem parking creates: the haul",
+        paragraphs: [
+          "Even when you find a spot, you're not done. You still have to carry chairs, an umbrella, a cooler, and everything else — sometimes several blocks, across hot sand, in the sun. For families and anyone without beach-cart gear, this is the single most exhausting part of a Virginia Beach day, and it's worst exactly where parking is hardest.",
+        ],
+      },
+      {
+        heading: "How to skip the haul entirely",
+        paragraphs: [
+          "This is the problem ShoreDrop was built to solve. Instead of loading up the car, circling for parking, and hauling gear across the sand, you reserve your setup, drop a pin on your exact beach spot, and we deliver and set everything up before you arrive — chairs, umbrella, cooler, and more. When the day's over, we come back, pack it up, and haul it away. You show up with your towel and leave with your tan.",
+        ],
+      },
+      {
+        heading: "How much is parking at the Virginia Beach Oceanfront?",
+        paragraphs: [
+          "The city charges for metered on-street parking, municipal surface lots, and three parking garages, with rates that vary by season and location and a progressive structure introduced in 2026. Check virginiabeach.gov/parking for current pricing before you go.",
+        ],
+      },
+      {
+        heading: "Is there free parking at Virginia Beach?",
+        paragraphs: [
+          "Most Resort Area meters are free in the off-season (roughly November through March), with a few year-round exceptions. In summer, expect to pay at nearly all official Oceanfront lots, garages, and meters.",
+        ],
+      },
+      {
+        heading: "Where do you park for the North End of Virginia Beach?",
+        paragraphs: [
+          "North End parking is limited and mostly on residential side streets, some permit-restricted, with no public restrooms in the area. Plan ahead — or book a delivered ShoreDrop setup so parking close to the sand matters a lot less.",
+          "Circling for parking and hauling gear is the worst part of a beach day. ShoreDrop delivers and sets up your entire beach setup on the Virginia Beach sand before you arrive — and packs it all up after.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "beach-chair-rental-virginia-beach",
     title: "Beach Chair Rental in Virginia Beach — Everything You Need to Know",
     excerpt:

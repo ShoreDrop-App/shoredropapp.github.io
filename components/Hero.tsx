@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Button } from "./button";
 import { ArrowRight, Star } from "lucide-react";
 
-/** Keep the current homepage photo — layout matches Lovable proportions. */
-const HERO_IMAGE = "/lovable-uploads/8cb1bdbc-787a-463c-9ad8-13203c8d57fa.png";
+/** Homepage hero — ShoreDrop beach setup photo. */
+const HERO_IMAGE = "/assets/hero-beach.jpg";
 
 const BOTTOM_POINTS = [
   "42nd–86th Street coverage",
@@ -26,7 +26,7 @@ const Hero = () => {
             </span>
 
             <div className="space-y-3">
-              <h1 className="max-w-[14ch] text-[2.4rem] font-semibold leading-[1.05] tracking-tight text-[#083b6c] sm:text-5xl lg:text-[3.25rem] xl:text-[3.5rem]">
+              <h1 className="font-serif max-w-[14ch] text-[2.4rem] font-semibold leading-[1.05] tracking-tight text-[#083b6c] sm:text-5xl lg:text-[3.25rem] xl:text-[3.5rem]">
                 Your Beach Day,
                 <span className="block">Delivered.</span>
               </h1>
@@ -73,7 +73,7 @@ const Hero = () => {
               <img
                 src={HERO_IMAGE}
                 alt="ShoreDrop beach setup with chairs, umbrella, and cooler"
-                className="h-[min(52svh,28rem)] w-full object-cover object-[center_38%] sm:h-[min(56svh,32rem)] lg:h-[min(72svh,36rem)] xl:h-[min(74svh,38rem)]"
+                className="h-[min(52svh,28rem)] w-full object-cover object-[center_42%] sm:h-[min(56svh,32rem)] lg:h-[min(72svh,36rem)] xl:h-[min(74svh,38rem)]"
               />
             </div>
             <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-2xl border border-white/60 bg-white/95 px-3 py-2.5 shadow-soft backdrop-blur sm:bottom-4 sm:left-4 sm:px-4 sm:py-3">

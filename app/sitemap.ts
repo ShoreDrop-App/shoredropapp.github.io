@@ -52,8 +52,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${BASE}/blog`,
-      lastModified: "2026-05-31",
-      changeFrequency: "monthly",
+      lastModified: "2026-07-28",
+      changeFrequency: "weekly",
       priority: 0.7,
     },
     {
@@ -61,6 +61,36 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: "2026-06-02",
       changeFrequency: "monthly",
       priority: 0.75,
+    },
+    {
+      url: `${BASE}/blog/best-beaches-in-virginia-beach`,
+      lastModified: "2026-07-28",
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${BASE}/blog/best-time-to-visit-virginia-beach`,
+      lastModified: "2026-07-28",
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${BASE}/blog/how-to-keep-beach-umbrella-from-blowing-away`,
+      lastModified: "2026-07-28",
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${BASE}/blog/beach-day-with-baby-toddler-virginia-beach`,
+      lastModified: "2026-07-28",
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${BASE}/blog/virginia-beach-parking-beach-access-guide`,
+      lastModified: "2026-07-28",
+      changeFrequency: "monthly",
+      priority: 0.7,
     },
     {
       url: `${BASE}/blog/beach-chair-rental-virginia-beach`,

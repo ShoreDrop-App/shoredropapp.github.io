@@ -45,7 +45,7 @@ export function blogPostJsonLd(post: BlogPost) {
     datePublished: `${post.publishedAt}T00:00:00.000Z`,
     dateModified: `${post.publishedAt}T00:00:00.000Z`,
     articleSection: post.category,
-    image: [`${SITE_URL}${post.image}`],
+    image: [post.image.startsWith("http") ? post.image : `${SITE_URL}${post.image}`],
     author: {
       "@type": "Organization",
       name: "ShoreDrop Team",
