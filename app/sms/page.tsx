@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "../../components/SiteNav";
 import SiteFooter from "../../components/SiteFooter";
-import SmsConsentCheckbox from "../../components/SmsConsentCheckbox";
+import SmsConsentPreview from "../../components/SmsConsentPreview";
 
 export const metadata: Metadata = {
   title: "SMS Messaging Consent",
@@ -63,7 +63,7 @@ export default function SmsConsentPage() {
               This is the consent control shown next to the phone field on website and app checkout (unchecked by
               default):
             </p>
-            <SmsConsentCheckbox id="sms-consent-preview" checked={false} onCheckedChange={() => undefined} />
+            <SmsConsentPreview />
           </section>
 
           <section>
