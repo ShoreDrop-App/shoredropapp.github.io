@@ -40,6 +40,8 @@ import {
 import { isSupabaseConfigured } from "../../../lib/services/supabase";
 import { placeOrderAndDispatch } from "../../../lib/services/orderDispatch";
 import { CONTACT_PHONE_REQUIRED_MESSAGE, isValidContactPhone } from "../../../lib/ordering/phone";
+import { SMS_CONSENT_REQUIRED_MESSAGE } from "../../../lib/ordering/smsConsent";
+import SmsConsentCheckbox from "../../../components/SmsConsentCheckbox";
 import { rememberWebOrder } from "../../../lib/ordering/webOrders";
 import { toast } from "sonner";
 import { X } from "lucide-react";
@@ -58,6 +60,7 @@ export default function FoodCheckoutPage() {
   const [tip, setTip] = useState(FOOD_TIP_DEFAULT);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
   const [stripeReady, setStripeReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [promoCodeDraft, setPromoCodeDraft] = useState("");
@@ -185,6 +188,10 @@ export default function FoodCheckoutPage() {
     }
     if (!isValidContactPhone(phone)) {
       toast.error(CONTACT_PHONE_REQUIRED_MESSAGE);
+      return;
+    }
+    if (!smsConsent) {
+      toast.error(SMS_CONSENT_REQUIRED_MESSAGE);
       return;
     }
     if (!location || !selectedStart) {
@@ -406,6 +413,7 @@ export default function FoodCheckoutPage() {
               onChange={(e) => setPhone(e.target.value)}
             />
           </div>
+          <SmsConsentCheckbox id="food-web-sms-consent" checked={smsConsent} onCheckedChange={setSmsConsent} />
 
           <div className="rounded-2xl border border-border bg-white p-4">
             <p className="mb-2 text-sm font-semibold text-[#083b6c]">Promo code</p>
@@ -512,7 +520,7 @@ export default function FoodCheckoutPage() {
           ) : null}
           <Button
             className="mt-5 w-full rounded-full bg-[#083b6c]"
-            disabled={submitting || !windowOpen || !name.trim() || !isValidContactPhone(phone)}
+            disabled={submitting || !windowOpen || !name.trim() || !isValidContactPhone(phone) || !smsConsent}
             onClick={() => void placeOrder()}
           >
             {submitting ? "Placing order…" : `Place order · $${totals.orderTotalUsd.toFixed(2)}`}

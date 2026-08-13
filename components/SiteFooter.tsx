@@ -45,6 +45,7 @@ const SiteFooter = () => {
             <h4 className="font-medium text-ocean-deep mb-4">Legal</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li><a href="/privacy" className="hover:text-ocean-deep transition-colors">Privacy</a></li>
+              <li><a href="/sms" className="hover:text-ocean-deep transition-colors">SMS consent</a></li>
               <li><a href="/delete-account" className="hover:text-ocean-deep transition-colors">Delete account</a></li>
               <li><a href="/terms" className="hover:text-ocean-deep transition-colors">Terms</a></li>
               <li><a href="/cancellation" className="hover:text-ocean-deep transition-colors">Cancellation</a></li>

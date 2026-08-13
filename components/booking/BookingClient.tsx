@@ -52,6 +52,8 @@ import StripeCardForm from "../checkout/StripeCardForm";
 import CustomerAuthPanel from "../auth/CustomerAuthPanel";
 import { useCustomerAuth } from "../../contexts/CustomerAuthContext";
 import { CONTACT_PHONE_REQUIRED_MESSAGE, isValidContactPhone } from "../../lib/ordering/phone";
+import { SMS_CONSENT_REQUIRED_MESSAGE } from "../../lib/ordering/smsConsent";
+import SmsConsentCheckbox from "../SmsConsentCheckbox";
 import { rememberWebOrder } from "../../lib/ordering/webOrders";
 import { toast } from "sonner";
 
@@ -75,6 +77,7 @@ export default function BookingClient() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
   const [notes, setNotes] = useState("");
   const [stripeReady, setStripeReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -283,6 +286,10 @@ export default function BookingClient() {
     }
     if (!isValidContactPhone(phone)) {
       toast.error(CONTACT_PHONE_REQUIRED_MESSAGE);
+      return;
+    }
+    if (!smsConsent) {
+      toast.error(SMS_CONSENT_REQUIRED_MESSAGE);
       return;
     }
     if (mode === "custom" && gearMerchandise + 1e-6 < CUSTOM_MIN_SUBTOTAL_USD) {
@@ -910,6 +917,7 @@ export default function BookingClient() {
                 />
               </div>
             </div>
+            <SmsConsentCheckbox id="booking-sms-consent" checked={smsConsent} onCheckedChange={setSmsConsent} />
             <div className="space-y-2">
               <Label>Notes for crew</Label>
               <Input className="h-12 rounded-xl" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} />
@@ -1051,7 +1059,7 @@ export default function BookingClient() {
             <Button
               type="button"
               className="flex-1 rounded-full bg-[#083b6c] hover:bg-[#0a4a85]"
-              disabled={submitting || !name.trim() || !isValidContactPhone(phone)}
+              disabled={submitting || !name.trim() || !isValidContactPhone(phone) || !smsConsent}
               onClick={() => void placeOrder()}
             >
               {submitting ? "Processing…" : `Confirm booking · $${totals.orderTotalUsd.toFixed(2)}`}

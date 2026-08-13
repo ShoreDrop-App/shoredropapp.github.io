@@ -31,7 +31,7 @@ export default function PrivacyPage() {
       <main className="container mx-auto px-4 pt-32 pb-16 max-w-3xl">
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-ocean-deep">Privacy Policy</h1>
-          <p className="text-sm text-muted-foreground mt-2">Last Updated: April 22, 2026</p>
+          <p className="text-sm text-muted-foreground mt-2">Last Updated: August 13, 2026</p>
         </header>
 
         <div className="space-y-6 text-sm leading-relaxed text-muted-foreground">
@@ -42,6 +42,17 @@ export default function PrivacyPage() {
           <p>
             By accessing or using the Services, you acknowledge that you have read and understand this Privacy Policy.
           </p>
+
+          <section className="rounded-xl border border-[#083b6c]/20 bg-[#e6f9ff] p-4 text-foreground">
+            <h2 className="mb-2 text-base font-semibold">SMS / mobile information</h2>
+            <p className="mb-2 font-medium">
+              We do not share, sell, or provide your mobile phone number or messaging consent data to third parties or
+              affiliates for marketing or promotional purposes.
+            </p>
+            <p>
+              Message frequency varies by order. Message and data rates may apply. Reply STOP to opt out; HELP for help.
+            </p>
+          </section>
 
           <section>
             <h2 className="font-semibold text-base text-foreground mb-2">1. Information We Collect</h2>
@@ -129,6 +140,15 @@ export default function PrivacyPage() {
             <p>
               All third parties are contractually required to safeguard your information and use it only for authorized purposes.
             </p>
+            <p className="mt-2 font-medium text-foreground">
+              We do not share, sell, or provide your mobile phone number or messaging consent data to third parties or
+              affiliates for marketing or promotional purposes.
+            </p>
+            <p className="mt-2">
+              Phone numbers collected at checkout are used only to send transactional SMS about that order (confirmation,
+              delivery status, and support chat), and for cancellations, refunds, or emergencies. Message frequency varies
+              by order. Message and data rates may apply.
+            </p>
           </section>
 
           <section>
@@ -192,13 +212,24 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-semibold text-base text-foreground mb-2">7. Communications</h2>
-            <p className="mb-2">By using the Services, you consent to receive:</p>
+            <p className="mb-2">
+              When you provide your mobile number at checkout and check the SMS consent box, you agree to receive
+              transactional SMS from ShoreDrop about that order only: order confirmation, delivery status updates
+              (on the way, setting up, ready), and two-way support chat. Message frequency varies by order. Message
+              and data rates may apply. Reply STOP to opt out; HELP for help.
+            </p>
+            <p className="mb-2">By using the Services, you also consent to receive:</p>
             <ul className="list-disc pl-5 space-y-1 mb-2">
-              <li>Transactional communications (orders, updates, support)</li>
-              <li>Service-related notifications</li>
-              <li>Promotional communications (subject to opt-out)</li>
+              <li>Transactional email (orders, updates, support)</li>
+              <li>Service-related notifications, including push notifications in the app</li>
             </ul>
-            <p>Message and data rates may apply.</p>
+            <p>
+              We do not send marketing or promotional SMS on this program. See{" "}
+              <a href="/sms" className="text-ocean-deep font-medium underline underline-offset-2">
+                shoredropapp.com/sms
+              </a>{" "}
+              for the full SMS consent flow.
+            </p>
           </section>
 
           <section>

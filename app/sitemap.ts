@@ -124,9 +124,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${BASE}/privacy`,
-      lastModified: "2026-04-22",
+      lastModified: "2026-08-12",
       changeFrequency: "yearly",
       priority: 0.5,
+    },
+    {
+      url: `${BASE}/sms`,
+      lastModified: "2026-08-12",
+      changeFrequency: "yearly",
+      priority: 0.6,
     },
     {
       url: `${BASE}/delete-account`,
@@ -136,7 +142,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${BASE}/terms`,
-      lastModified: "2026-04-22",
+      lastModified: "2026-08-12",
       changeFrequency: "yearly",
       priority: 0.5,
     },

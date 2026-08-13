@@ -31,7 +31,7 @@ export default function TermsPage() {
       <main className="container mx-auto px-4 pt-32 pb-16 max-w-3xl">
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-ocean-deep">Terms of Service</h1>
-          <p className="text-sm text-muted-foreground mt-2">Last Updated: April 22, 2026</p>
+          <p className="text-sm text-muted-foreground mt-2">Last Updated: August 13, 2026</p>
         </header>
 
         <div className="space-y-6 text-sm leading-relaxed text-muted-foreground">
@@ -314,9 +314,27 @@ export default function TermsPage() {
 
           <section>
             <h2 className="font-semibold text-base text-foreground mb-2">23. Communications Consent</h2>
-            <p>
-              By using the Service, you consent to receive transactional and promotional communications from ShoreDrop via email, SMS, or push notifications. Message and data rates may apply.
+            <p className="mb-2">
+              <span className="font-medium text-foreground">Program:</span> ShoreDrop transactional order SMS. After you
+              provide your mobile number at checkout and check the SMS consent box, ShoreDrop may text you about that
+              order only (confirmation, delivery status, and two-way support chat).
             </p>
+            <p className="mb-2">
+              Message frequency varies by order. Message and data rates may apply. Reply <strong>STOP</strong> to opt
+              out. Reply <strong>HELP</strong> for help. Support: {SUPPORT_EMAIL} or{" "}
+              <a
+                href={`tel:${SUPPORT_PHONE_TEL}`}
+                className="text-ocean-deep font-medium underline underline-offset-2"
+              >
+                {SUPPORT_PHONE}
+              </a>
+              . Details:{" "}
+              <a href="/sms" className="text-ocean-deep font-medium underline underline-offset-2">
+                shoredropapp.com/sms
+              </a>
+              .
+            </p>
+            <p>You may also receive transactional email and in-app notifications related to your order.</p>
           </section>
 
           <section>
