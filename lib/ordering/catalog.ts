@@ -137,7 +137,7 @@ export function isPremiumSetupStart(startTimeLabel: string): boolean {
 export const CUSTOM_GEAR = [
   { id: "beach-chair", name: "Beach Chair", price: 11.99, image: "/assets/items/beach-chair.png" },
   { id: "beach-tent", name: "Beach Tent", price: 24.99, image: "/assets/items/beach-tent.png" },
-  { id: "umbrella", name: "Beach Umbrella", price: 20, image: "/assets/items/umbrella.png" },
+  { id: "umbrella", name: "Beach Umbrella", price: 20.99, image: "/assets/items/umbrella.png" },
   { id: "small-cooler", name: "Small Cooler + Ice", price: 12.99, image: "/assets/items/small-cooler.png" },
   { id: "large-cooler", name: "Large Cooler + Ice", price: 18.99, image: "/assets/items/large-cooler.png" },
 ] as const;
@@ -145,7 +145,7 @@ export const CUSTOM_GEAR = [
 export const CUSTOM_GEAR_PRICES: Record<string, { half: number; full: number; shore: number }> = {
   "beach-chair": { half: 11.99, full: 16.35, shore: 19.62 },
   "beach-tent": { half: 24.99, full: 34.99, shore: 41.99 },
-  umbrella: { half: 20, full: 20, shore: 20 },
+  umbrella: { half: 20.99, full: 29.99, shore: 37.99 },
   "small-cooler": { half: 12.99, full: 15.99, shore: 19.99 },
   "large-cooler": { half: 18.99, full: 23.99, shore: 29.99 },
 };
