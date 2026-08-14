@@ -31,7 +31,7 @@ export default function PrivacyPage() {
       <main className="container mx-auto px-4 pt-32 pb-16 max-w-3xl">
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-ocean-deep">Privacy Policy</h1>
-          <p className="text-sm text-muted-foreground mt-2">Last Updated: August 13, 2026</p>
+          <p className="text-sm text-muted-foreground mt-2">Last Updated: August 14, 2026</p>
         </header>
 
         <div className="space-y-6 text-sm leading-relaxed text-muted-foreground">
@@ -121,7 +121,6 @@ export default function PrivacyPage() {
               <li>Enable deliveries and location-based services</li>
               <li>Communicate updates, confirmations, and customer support</li>
               <li>Improve our app, website, and user experience</li>
-              <li>Send marketing and promotional communications (you may opt out)</li>
               <li>Detect, prevent, and investigate fraud or misuse</li>
               <li>Comply with legal and regulatory obligations</li>
             </ul>
@@ -130,19 +129,23 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-semibold text-base text-foreground mb-2">3. How We Share Information</h2>
             <p className="font-medium text-foreground mb-2">We do not sell your personal information.</p>
-            <p className="mb-2">We may share information with:</p>
+            <p className="mb-2 font-medium text-foreground">
+              We do not share, sell, or provide your mobile phone number or messaging consent data to third parties or
+              affiliates for marketing or promotional purposes.
+            </p>
+            <p className="mb-2">
+              We do not share personal information with third parties, affiliates, or lead generators for marketing or
+              promotional purposes. We do not sell, rent, or trade mobile numbers or SMS opt-in data.
+            </p>
+            <p className="mb-2">We may share information only as needed to fulfill your order and operate the Services:</p>
             <ul className="list-disc pl-5 space-y-1 mb-2">
-              <li>Service providers and partners, including delivery personnel and vendors</li>
+              <li>ShoreDrop crew, to deliver and set up your order</li>
               <li>Payment processors, including Stripe, to complete transactions</li>
-              <li>Analytics providers to understand usage and improve performance</li>
               <li>Legal authorities when required by law or to protect rights, safety, or property</li>
             </ul>
             <p>
-              All third parties are contractually required to safeguard your information and use it only for authorized purposes.
-            </p>
-            <p className="mt-2 font-medium text-foreground">
-              We do not share, sell, or provide your mobile phone number or messaging consent data to third parties or
-              affiliates for marketing or promotional purposes.
+              Those parties may use the information only to provide that service. They may not use it for their own
+              marketing.
             </p>
             <p className="mt-2">
               Phone numbers collected at checkout are used only to send transactional SMS about that order (confirmation,
@@ -202,7 +205,7 @@ export default function PrivacyPage() {
               We will respond within 45 days, with a possible extension of an additional 45 days where permitted by law.
             </p>
             <p className="mb-3">We will not discriminate against you for exercising your rights.</p>
-            <h3 className="font-medium text-foreground mb-1">Marketing Opt-Out</h3>
+            <h3 className="font-medium text-foreground mb-1">Email opt-out</h3>
             <p className="mb-2">You may opt out of marketing emails at any time by:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>Clicking &quot;unsubscribe&quot; in emails</li>
