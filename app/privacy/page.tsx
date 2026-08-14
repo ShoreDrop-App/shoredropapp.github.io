@@ -35,6 +35,11 @@ export default function PrivacyPage() {
         </header>
 
         <div className="space-y-6 text-sm leading-relaxed text-muted-foreground">
+          <p className="font-medium text-foreground">
+            We do not share, sell, or provide your mobile phone number or messaging consent data to third parties or
+            affiliates for marketing or promotional purposes. Message frequency varies by order. Message and data rates
+            may apply.
+          </p>
           <p>
             ShoreDrop LLC (&quot;ShoreDrop,&quot; &quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy.
             This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website, mobile application, and related services (collectively, the &quot;Services&quot;).
@@ -69,7 +74,9 @@ export default function PrivacyPage() {
 
             <h3 className="font-medium text-foreground mb-1">B. Payment Information</h3>
             <p className="mb-3">
-              Payments are processed by third-party providers, including Stripe. ShoreDrop does not store full payment card details. We may receive limited information such as payment status, billing metadata, and the last four digits of a card.
+              Payments are processed by Stripe on ShoreDrop&apos;s behalf to complete checkout. Stripe does not receive
+              SMS opt-in or messaging consent data for marketing. ShoreDrop does not store full payment card details. We
+              may receive limited information such as payment status, billing metadata, and the last four digits of a card.
             </p>
 
             <h3 className="font-medium text-foreground mb-1">C. Automatically Collected Information</h3>
@@ -185,7 +192,7 @@ export default function PrivacyPage() {
               <li>Right to Correct — request correction of inaccuracies</li>
               <li>Right to Delete — request deletion of your data</li>
               <li>Right to Data Portability — receive your data in a portable format</li>
-              <li>Right to Opt Out — opt out of targeted advertising, sale of personal data, or certain profiling</li>
+              <li>Right to Opt Out — opt out of targeted advertising or certain profiling (ShoreDrop does not sell personal data)</li>
               <li>Right to Appeal — appeal our decision if we deny your request</li>
             </ul>
             <p className="mb-2">
@@ -205,12 +212,6 @@ export default function PrivacyPage() {
               We will respond within 45 days, with a possible extension of an additional 45 days where permitted by law.
             </p>
             <p className="mb-3">We will not discriminate against you for exercising your rights.</p>
-            <h3 className="font-medium text-foreground mb-1">Email opt-out</h3>
-            <p className="mb-2">You may opt out of marketing emails at any time by:</p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Clicking &quot;unsubscribe&quot; in emails</li>
-              <li>Contacting us directly</li>
-            </ul>
           </section>
 
           <section>
@@ -243,9 +244,9 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="font-semibold text-base text-foreground mb-2">9. Third-Party Links</h2>
+            <h2 className="font-semibold text-base text-foreground mb-2">9. Other Websites</h2>
             <p>
-              Our Services may contain links to third-party websites. ShoreDrop is not responsible for their privacy practices and encourages you to review their policies.
+              Our Services may contain links to other websites. ShoreDrop is not responsible for those sites and encourages you to review their policies.
             </p>
           </section>
 
