@@ -47,7 +47,12 @@ import {
 import { isSupabaseConfigured } from "../../lib/services/supabase";
 import { placeOrderAndDispatch } from "../../lib/services/orderDispatch";
 import { fetchOutstandingGearPoolCounts } from "../../lib/services/outstandingGearPool";
-import { canSellCustomQty, canSellPackage, type InventoryBucket } from "../../lib/ordering/inventory";
+import {
+  canSellCustomQty,
+  canSellPackage,
+  remainingCustomUnits,
+  type InventoryBucket,
+} from "../../lib/ordering/inventory";
 import StripeCardForm from "../checkout/StripeCardForm";
 import CustomerAuthPanel from "../auth/CustomerAuthPanel";
 import { useCustomerAuth } from "../../contexts/CustomerAuthContext";
@@ -57,7 +62,7 @@ import SmsConsentCheckbox from "../SmsConsentCheckbox";
 import { rememberWebOrder } from "../../lib/ordering/webOrders";
 import { toast } from "sonner";
 
-const STEPS = ["Package", "Date", "Duration", "Location", "Pay"] as const;
+const STEPS = ["Date", "Package", "Duration", "Location", "Pay"] as const;
 
 type Mode = "package" | "custom";
 
@@ -84,6 +89,7 @@ export default function BookingClient() {
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
   const [confirmedTrackingToken, setConfirmedTrackingToken] = useState<string | null>(null);
   const [serverPool, setServerPool] = useState<Record<InventoryBucket, number> | null>(null);
+  const [poolReady, setPoolReady] = useState(false);
   const [promoCodeDraft, setPromoCodeDraft] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<StripePromoResult | null>(null);
   const [appliedPromoCode, setAppliedPromoCode] = useState("");
@@ -115,21 +121,41 @@ export default function BookingClient() {
   useEffect(() => {
     if (!serviceDate || !isSupabaseConfigured()) {
       setServerPool(null);
+      setPoolReady(false);
       return;
     }
     let cancelled = false;
+    setPoolReady(false);
     const day = easternDateKey(serviceDate);
-    const pull = async () => {
+    const pull = async (isRefresh = false) => {
       const snap = await fetchOutstandingGearPoolCounts(day);
-      if (!cancelled) setServerPool(snap);
+      if (!cancelled) {
+        setServerPool(snap);
+        if (!isRefresh) setPoolReady(true);
+      }
     };
-    void pull();
-    const id = window.setInterval(() => void pull(), 35_000);
+    void pull(false);
+    const id = window.setInterval(() => void pull(true), 35_000);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
   }, [serviceDate]);
+
+  useEffect(() => {
+    if (!serverPool) return;
+    setCustomQty((q) => {
+      const next = { ...q };
+      let changed = false;
+      for (const sku of Object.keys(next)) {
+        while ((next[sku] ?? 0) > 0 && !canSellCustomQty(next, serverPool)) {
+          next[sku] = (next[sku] ?? 0) - 1;
+          changed = true;
+        }
+      }
+      return changed ? next : q;
+    });
+  }, [serverPool]);
 
   const todayEastern = useMemo(() => startOfDay(new Date()), []);
   const isSameDay = serviceDate ? isSameEasternDay(serviceDate, new Date()) : false;
@@ -229,12 +255,18 @@ export default function BookingClient() {
       ? "Prices for your custom gear"
       : `Prices for ${pkg.name}`;
 
+  const selectionAvailable = useMemo(() => {
+    if (!poolReady || !serverPool) return false;
+    if (mode === "package") return canSellPackage(packageId, serverPool);
+    return canSellCustomQty(customQty, serverPool);
+  }, [poolReady, serverPool, mode, packageId, customQty]);
+
   const canContinue = () => {
-    if (step === 0) {
-      if (mode === "package") return true;
-      return gearMerchandise + 1e-6 >= CUSTOM_MIN_SUBTOTAL_USD;
+    if (step === 0) return Boolean(serviceDate);
+    if (step === 1) {
+      if (mode === "package") return selectionAvailable;
+      return selectionAvailable && gearMerchandise + 1e-6 >= CUSTOM_MIN_SUBTOTAL_USD;
     }
-    if (step === 1) return Boolean(serviceDate);
     if (step === 2) return Boolean(startTime && durationHours && availableStartTimes.length > 0);
     if (step === 3) return Boolean(location);
     return true;
@@ -529,9 +561,12 @@ export default function BookingClient() {
             Food in bag: ${foodSubtotal.toFixed(2)} from {foodRestaurant?.name ?? "partner"} — included at checkout.
           </div>
         ) : null}
-        {step === 1 ? (
+        {step === 0 ? (
           <div className="space-y-5">
             <h2 className="text-2xl font-semibold text-[#083b6c]">When&apos;s your beach day?</h2>
+            <p className="text-sm text-muted-foreground">
+              Next we&apos;ll show which setups are still available for that date.
+            </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
@@ -700,12 +735,32 @@ export default function BookingClient() {
           </div>
         ) : null}
 
-        {step === 0 ? (
+        {step === 1 ? (
           <div className="space-y-5">
             <div className="flex items-end justify-between gap-3">
               <h2 className="text-2xl font-semibold text-[#083b6c]">Choose your setup</h2>
               <p className="text-sm font-bold text-[#083b6c]">${gearMerchandise.toFixed(2)}</p>
             </div>
+            {serviceDate ? (
+              <p className="text-sm text-muted-foreground">
+                Availability for {format(serviceDate, "EEEE, MMM d")}
+              </p>
+            ) : null}
+            {!poolReady ? (
+              <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                Checking what&apos;s left for this date…
+              </div>
+            ) : !serverPool ? (
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                Couldn&apos;t check gear availability. Go back and try again in a moment.
+              </div>
+            ) : !selectionAvailable ? (
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                {mode === "package"
+                  ? `${pkg.name} is sold out for this date. Pick another setup or a different day.`
+                  : "Not enough gear left for that custom setup. Reduce items or pick another day."}
+              </div>
+            ) : null}
             {foodLines.length > 0 ? (
               <div className="rounded-2xl border border-[#083b6c]/20 bg-[#e6f9ff]/70 px-4 py-3 text-sm text-[#083b6c]">
                 Food bag saved: {foodLines.reduce((n, l) => n + l.quantity, 0)} items from{" "}
@@ -746,7 +801,7 @@ export default function BookingClient() {
               <div className="space-y-3">
                 {PACKAGES.map((p) => {
                   const price = getPackageTierPrice(p.id, slotId);
-                  const soldOut = serviceDate ? !canSellPackage(p.id, serverPool) : false;
+                  const soldOut = poolReady && !canSellPackage(p.id, serverPool);
                   return (
                     <button
                       key={p.id}
@@ -763,7 +818,7 @@ export default function BookingClient() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-bold text-[#083b6c]">{p.name}</p>
-                          <p className="shrink-0 font-semibold text-[#083b6c]">
+                          <p className={cn("shrink-0 font-semibold", soldOut ? "text-destructive" : "text-[#083b6c]")}>
                             {soldOut ? "Sold out" : `$${price.toFixed(2)}`}
                           </p>
                         </div>
@@ -781,15 +836,25 @@ export default function BookingClient() {
                 {CUSTOM_GEAR.map((g) => {
                   const unit = customGearUnitPrice(g.id, durationHours);
                   const qty = customQty[g.id] ?? 0;
+                  const left = remainingCustomUnits(g.id, serverPool);
+                  const soldOut = poolReady && left <= 0;
+                  const plusBlocked =
+                    !poolReady ||
+                    !canSellCustomQty({ ...customQty, [g.id]: qty + 1 }, serverPool);
                   return (
                     <div
                       key={g.id}
-                      className="flex items-center gap-3 rounded-2xl border border-border bg-white p-3"
+                      className={cn(
+                        "flex items-center gap-3 rounded-2xl border border-border bg-white p-3",
+                        soldOut && "opacity-55",
+                      )}
                     >
                       <img src={g.image} alt="" className="h-12 w-12 object-contain" />
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold text-[#083b6c]">{g.name}</p>
-                        <p className="text-xs text-muted-foreground">${unit.toFixed(2)} each</p>
+                        <p className={cn("text-xs", soldOut ? "font-semibold text-destructive" : "text-muted-foreground")}>
+                          {soldOut ? "Sold out" : `$${unit.toFixed(2)} each`}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
@@ -809,6 +874,7 @@ export default function BookingClient() {
                           size="sm"
                           variant="outline"
                           className="h-8 w-8 rounded-full p-0"
+                          disabled={plusBlocked}
                           onClick={() =>
                             setCustomQty((q) => {
                               const next = { ...q, [g.id]: (q[g.id] ?? 0) + 1 };
@@ -1063,13 +1129,19 @@ export default function BookingClient() {
               disabled={!canContinue()}
               onClick={() => setStep((s) => s + 1)}
             >
-              Continue
+              {step === 1 && poolReady && !selectionAvailable ? "Sold out for this date" : "Continue"}
             </Button>
           ) : (
             <Button
               type="button"
               className="flex-1 rounded-full bg-[#083b6c] hover:bg-[#0a4a85]"
-              disabled={submitting || !name.trim() || !isValidContactPhone(phone) || !smsConsent}
+              disabled={
+                submitting ||
+                !selectionAvailable ||
+                !name.trim() ||
+                !isValidContactPhone(phone) ||
+                !smsConsent
+              }
               onClick={() => void placeOrder()}
             >
               {submitting ? "Processing…" : `Confirm booking · $${totals.orderTotalUsd.toFixed(2)}`}

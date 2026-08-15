@@ -74,3 +74,19 @@ export function canSellCustomQty(
   }
   return (Object.keys(need) as InventoryBucket[]).every((k) => need[k] <= rem[k]);
 }
+
+/** How many more of this à-la-carte SKU the day can still take. */
+export function remainingCustomUnits(
+  sku: string,
+  serverOutstanding: Record<InventoryBucket, number> | null,
+): number {
+  if (!serverOutstanding) return 0;
+  const use = CUSTOM_SKU_BUCKETS[sku];
+  if (!use) return Number.POSITIVE_INFINITY;
+  const rem = remainingPool(serverOutstanding);
+  return Math.min(
+    ...(Object.keys(use) as InventoryBucket[]).map((k) =>
+      Math.floor(rem[k] / Math.max(1, use[k] ?? 1)),
+    ),
+  );
+}
