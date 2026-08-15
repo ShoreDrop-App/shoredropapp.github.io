@@ -51,6 +51,7 @@ export function canSellPackage(
   packageId: PackageId,
   serverOutstanding: Record<InventoryBucket, number> | null,
 ): boolean {
+  if (!serverOutstanding) return false;
   const rem = remainingPool(serverOutstanding);
   const need = PACKAGE_STOCK_USE[packageId] ?? {};
   return (Object.keys(need) as InventoryBucket[]).every((k) => (need[k] ?? 0) <= rem[k]);
@@ -60,6 +61,7 @@ export function canSellCustomQty(
   qty: Record<string, number>,
   serverOutstanding: Record<InventoryBucket, number> | null,
 ): boolean {
+  if (!serverOutstanding) return false;
   const rem = remainingPool(serverOutstanding);
   const need = emptyPool();
   for (const [sku, q] of Object.entries(qty)) {

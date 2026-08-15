@@ -106,7 +106,21 @@ export async function placeOrderAndDispatch(input: {
   });
 
   if (!itemsResponse.ok) {
-    throw new Error(`Failed to save order items (${itemsResponse.status}).`);
+    let detail = "";
+    try {
+      const errBody = (await itemsResponse.clone().json()) as { message?: string; hint?: string };
+      detail = [errBody?.message, errBody?.hint].filter(Boolean).join(" — ");
+    } catch {
+      /* ignore */
+    }
+    await fetch(getRestUrl(`orders?id=eq.${orderId}`), {
+      method: "DELETE",
+      headers: getRestInsertMinimalHeaders(),
+    }).catch(() => undefined);
+    if (/GEAR_POOL_SOLD_OUT/i.test(detail)) {
+      throw new Error("That gear just sold out for this date. Pick fewer items or another day.");
+    }
+    throw new Error(detail || `Failed to save order items (${itemsResponse.status}).`);
   }
 
   let trackingToken: string | null = null;

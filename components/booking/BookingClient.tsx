@@ -311,6 +311,10 @@ export default function BookingClient() {
 
     const freshPool = await fetchOutstandingGearPoolCounts(easternDateKey(serviceDate));
     setServerPool(freshPool);
+    if (!freshPool) {
+      toast.error("Couldn’t check gear availability. Try again in a moment.");
+      return;
+    }
     if (mode === "package" && !canSellPackage(packageId, freshPool)) {
       toast.error("That package is sold out for this date — pick another or try a different day.");
       return;
@@ -805,7 +809,13 @@ export default function BookingClient() {
                           size="sm"
                           variant="outline"
                           className="h-8 w-8 rounded-full p-0"
-                          onClick={() => setCustomQty((q) => ({ ...q, [g.id]: (q[g.id] ?? 0) + 1 }))}
+                          onClick={() =>
+                            setCustomQty((q) => {
+                              const next = { ...q, [g.id]: (q[g.id] ?? 0) + 1 };
+                              if (!canSellCustomQty(next, serverPool)) return q;
+                              return next;
+                            })
+                          }
                         >
                           +
                         </Button>
