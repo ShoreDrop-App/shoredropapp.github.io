@@ -11,6 +11,14 @@ export const INVENTORY_MAX = {
 
 export type InventoryBucket = keyof typeof INVENTORY_MAX;
 
+export const INVENTORY_BUCKET_LABEL: Record<InventoryBucket, string> = {
+  chairs: "Beach chairs",
+  umbrellas: "Umbrellas",
+  smallCoolers: "Small coolers",
+  largeCoolers: "Large coolers",
+  beachTents: "Beach tents",
+};
+
 export const PACKAGE_STOCK_USE: Record<PackageId, Partial<Record<InventoryBucket, number>>> = {
   "chill-pill": { chairs: 1, umbrellas: 1, smallCoolers: 1 },
   "sandy-duo": { chairs: 2, umbrellas: 1, smallCoolers: 1 },
