@@ -14,6 +14,7 @@ import {
   INVENTORY_MAX,
   type InventoryBucket,
 } from "../../lib/ordering/inventory";
+import { expandOrderItem } from "../../lib/ordering/orderItemLines";
 import { fetchOutstandingGearPoolCounts } from "../../lib/services/outstandingGearPool";
 import {
   driverGetGearHolds,
@@ -444,15 +445,41 @@ export default function AdminClient() {
                     </p>
 
                     {lines.length > 0 ? (
-                      <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-                        {lines.map((l, i) => (
-                          <li
-                            key={l.id ?? `${o.id}-${i}`}
-                            className={cn(l.fulfillment_status === "waived" && "line-through")}
-                          >
-                            · {l.quantity}× {l.item_name}
-                          </li>
-                        ))}
+                      <ul className="mt-2.5 space-y-2">
+                        {lines.map((l, i) => {
+                          const line = expandOrderItem(l);
+                          return (
+                            <li key={l.id ?? `${o.id}-${i}`} className="text-xs">
+                              <p
+                                className={cn(
+                                  "font-semibold text-foreground",
+                                  line.waived && "text-muted-foreground line-through",
+                                )}
+                              >
+                                {line.title}
+                              </p>
+                              {line.details.length > 0 ? (
+                                <ul className="mt-0.5 space-y-0.5 pl-3 text-muted-foreground">
+                                  {line.details.map((d, di) => (
+                                    <li key={di}>· {d}</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                              {line.addOns.length > 0 ? (
+                                <ul className="mt-0.5 space-y-0.5 pl-3 font-medium text-[#3b82b6]">
+                                  {line.addOns.map((a, ai) => (
+                                    <li key={ai}>+ {a}</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                              {line.waived ? (
+                                <p className="mt-0.5 pl-3 font-medium text-destructive">
+                                  Waived{line.waivedReason ? ` — ${line.waivedReason}` : ""}
+                                </p>
+                              ) : null}
+                            </li>
+                          );
+                        })}
                       </ul>
                     ) : null}
 

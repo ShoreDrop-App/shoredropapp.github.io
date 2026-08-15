@@ -36,6 +36,7 @@ export type DriverItemRow = {
   unit_price: number;
   metadata?: Record<string, unknown> | null;
   fulfillment_status?: "pending" | "waived" | "delivered";
+  waived_reason?: string | null;
 };
 
 export type DriverListResponse = {
