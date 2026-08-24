@@ -21,9 +21,8 @@ import {
   type PackageId,
   customGearUnitPrice,
   getFoodRestaurant,
-  getPackageTierPrice,
   isPremiumSetupStart,
-  resolvePricingSlotId,
+  quotedPackagePrice,
 } from "../../lib/ordering/catalog";
 import { useFoodBag } from "../../contexts/FoodBagContext";
 import { BEACH_LOCATION_OPTIONS } from "../../lib/ordering/beachLocations";
@@ -161,32 +160,30 @@ export default function BookingClient() {
   const isSameDay = serviceDate ? isSameEasternDay(serviceDate, new Date()) : false;
   const onDemand = isSameDay ? ON_DEMAND_PACKAGE_SURCHARGE_USD : 0;
 
-  const slotId = resolvePricingSlotId(startTime, durationHours);
-
   const customMerchandiseForHours = useCallback(
-    (hours: number) =>
+    (hours: number, start = startTime) =>
       Object.entries(customQty).reduce((sum, [sku, qty]) => {
         if (!qty) return sum;
-        return sum + customGearUnitPrice(sku, hours) * qty;
+        return sum + customGearUnitPrice(sku, hours, start) * qty;
       }, 0),
-    [customQty],
+    [customQty, startTime],
   );
 
   const setupPreviewForHours = useCallback(
-    (hours: number) => {
-      const customTotal = customMerchandiseForHours(hours);
+    (hours: number, start = startTime) => {
+      const customTotal = customMerchandiseForHours(hours, start);
       if (mode === "custom" && customTotal > 0) return customTotal;
-      return getPackageTierPrice(packageId, resolvePricingSlotId(startTime, hours));
+      return quotedPackagePrice(packageId, start, hours);
     },
     [customMerchandiseForHours, mode, packageId, startTime],
   );
 
   const gearMerchandise = useMemo(() => {
     if (mode === "package") {
-      return getPackageTierPrice(packageId, slotId);
+      return quotedPackagePrice(packageId, startTime, durationHours);
     }
-    return customMerchandiseForHours(durationHours);
-  }, [mode, packageId, slotId, customMerchandiseForHours, durationHours]);
+    return customMerchandiseForHours(durationHours, startTime);
+  }, [mode, packageId, startTime, durationHours, customMerchandiseForHours]);
 
   const foodRestaurant = foodLines.length
     ? getFoodRestaurant(foodLines[0]!.restaurantId)
@@ -690,6 +687,9 @@ export default function BookingClient() {
                   {availableStartTimes.map((t) => {
                     const premium = isPremiumSetupStart(t);
                     const selected = startTime === t;
+                    const tPrice = setupPreviewForHours(durationHours, t);
+                    const standardPrice = setupPreviewForHours(durationHours, "9:00 AM");
+                    const extra = Math.max(0, Math.round((tPrice - standardPrice) * 100) / 100);
                     return (
                       <button
                         key={t}
@@ -705,7 +705,7 @@ export default function BookingClient() {
                         <p className="text-sm font-semibold">{t}</p>
                         {premium ? (
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-[#083b6c]/80">
-                            Premium
+                            Premium{extra > 0 ? ` +$${extra.toFixed(2)}` : ""}
                           </p>
                         ) : (
                           <p className="text-[10px] font-medium text-muted-foreground">Standard</p>
@@ -800,7 +800,7 @@ export default function BookingClient() {
             {mode === "package" ? (
               <div className="space-y-3">
                 {PACKAGES.map((p) => {
-                  const price = getPackageTierPrice(p.id, slotId);
+                  const price = quotedPackagePrice(p.id, startTime, durationHours);
                   const soldOut = poolReady && !canSellPackage(p.id, serverPool);
                   return (
                     <button

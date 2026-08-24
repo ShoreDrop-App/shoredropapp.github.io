@@ -65,10 +65,10 @@ const PACKAGE_ROWS: Record<PackageId, Record<string, number>> = {
   "shady-bunch": {
     "half-9-12": 64.99,
     "half-10-1": 64.99,
-    "half-11-2": 64.99,
-    "half-12-3": 64.99,
-    "half-1-4": 64.99,
-    "half-2-5": 64.99,
+    "half-11-2": 69.99,
+    "half-12-3": 69.99,
+    "half-1-4": 69.99,
+    "half-2-5": 69.99,
     "full-6hr": 74.99,
     "shore-8hr": 79.99,
   },
@@ -84,8 +84,17 @@ const PACKAGE_ROWS: Record<PackageId, Record<string, number>> = {
   },
 };
 
+function roundUsd2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
 export function getPackageTierPrice(packageId: PackageId, slotId: string): number {
   return PACKAGE_ROWS[packageId]?.[slotId] ?? 0;
+}
+
+/** Extra charged vs the 9–12 half-day row when the start is an afternoon premium slot. */
+export function packagePremiumDeltaUsd(packageId: PackageId): number {
+  return roundUsd2(getPackageTierPrice(packageId, "half-11-2") - getPackageTierPrice(packageId, "half-9-12"));
 }
 
 export function getPackageStartingFrom(packageId: PackageId): number {
@@ -108,9 +117,10 @@ const HALF_DAY_START_TO_SLOT: Record<string, string> = {
   "11:00 AM": "half-11-2",
   "12:00 PM": "half-12-3",
   "1:00 PM": "half-1-4",
-  "2:00 PM": "half-2-5",
+  /** 2pm / 4pm were mapped to a cheaper late row; they are premium starts now. */
+  "2:00 PM": "half-1-4",
   "3:00 PM": "half-1-4",
-  "4:00 PM": "half-2-5",
+  "4:00 PM": "half-1-4",
 };
 
 export function resolvePricingSlotId(startTimeLabel: string, durationHours: number): string {
@@ -118,6 +128,22 @@ export function resolvePricingSlotId(startTimeLabel: string, durationHours: numb
   if (tier >= 8) return "shore-8hr";
   if (tier >= 6) return "full-6hr";
   return HALF_DAY_START_TO_SLOT[startTimeLabel.trim()] ?? "half-9-12";
+}
+
+/**
+ * Package price for the chosen start + duration.
+ * Half-day rows already encode morning vs afternoon. Full / Shore Day only had one
+ * price per duration, so afternoon starts add the same dollar bump as half-day premium.
+ */
+export function quotedPackagePrice(
+  packageId: PackageId,
+  startTimeLabel: string,
+  durationHours: number,
+): number {
+  const base = getPackageTierPrice(packageId, resolvePricingSlotId(startTimeLabel, durationHours));
+  if (billingTierHours(durationHours) <= 3) return base;
+  if (!isPremiumSetupStart(startTimeLabel)) return base;
+  return roundUsd2(base + packagePremiumDeltaUsd(packageId));
 }
 
 /** Afternoon starts (11:00 AM+) use premium half-day package tiers — same as Cap app. */
@@ -150,13 +176,19 @@ export const CUSTOM_GEAR_PRICES: Record<string, { half: number; full: number; sh
   "large-cooler": { half: 18.99, full: 23.99, shore: 29.99 },
 };
 
-export function customGearUnitPrice(sku: string, durationHours: number): number {
+export function customGearUnitPrice(sku: string, durationHours: number, startTimeLabel?: string): number {
   const row = CUSTOM_GEAR_PRICES[sku];
   if (!row) return 0;
   const tier = billingTierHours(durationHours);
-  if (tier >= 8) return row.shore;
-  if (tier >= 6) return row.full;
-  return row.half;
+  let price = tier >= 8 ? row.shore : tier >= 6 ? row.full : row.half;
+  if (startTimeLabel && isPremiumSetupStart(startTimeLabel)) {
+    const morning = getPackageTierPrice("chill-pill", "half-9-12");
+    const afternoon = getPackageTierPrice("chill-pill", "half-11-2");
+    if (morning > 0 && afternoon > morning) {
+      price = roundUsd2(price * (afternoon / morning));
+    }
+  }
+  return price;
 }
 
 export const CUSTOM_MIN_SUBTOTAL_USD = 24.99;
