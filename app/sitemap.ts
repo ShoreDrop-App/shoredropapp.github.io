@@ -63,6 +63,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.75,
     },
     {
+      url: `${BASE}/kiosk`,
+      lastModified: "2026-08-31",
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
       url: `${BASE}/blog/best-beaches-in-virginia-beach`,
       lastModified: "2026-07-28",
       changeFrequency: "monthly",

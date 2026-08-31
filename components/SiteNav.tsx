@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FaApple } from "react-icons/fa";
 import { Button } from "./button";
 import CartDrawer from "./CartDrawer";
-import { IOS_APP_STORE_URL, KIOSK_LANDING_URL } from "../lib/app-links";
+import { IOS_APP_STORE_URL } from "../lib/app-links";
 
 const SiteNav = () => {
   return (
@@ -29,14 +29,9 @@ const SiteNav = () => {
           <Link href="/private-events" className="text-sm font-medium text-muted-foreground hover:text-[#083b6c]">
             Private Events
           </Link>
-          <a
-            href={KIOSK_LANDING_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-muted-foreground hover:text-[#083b6c]"
-          >
+          <Link href="/kiosk" className="text-sm font-medium text-muted-foreground hover:text-[#083b6c]">
             Kiosk
-          </a>
+          </Link>
           <Link
             href="/food"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-[#083b6c]"
