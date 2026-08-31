@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Building2, Camera, Hand, QrCode, Sun, Users } from "lucide-react";
 import SiteNav from "../../components/SiteNav";
 import SiteFooter from "../../components/SiteFooter";
-
-const PARTNERS_EMAIL = "partners@shoredropapp.com";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_DISPLAY } from "../../lib/contact";
 
 export const metadata: Metadata = {
   title: "Kiosk for Hotels",
@@ -213,16 +212,16 @@ export default function KioskPage() {
           </p>
           <div className="mt-10 flex flex-col items-center gap-5">
             <a
-              href={`mailto:${PARTNERS_EMAIL}`}
+              href={`mailto:${SUPPORT_EMAIL}?subject=ShoreDrop%20Kiosk%20Demo`}
               className="rounded-full bg-white px-8 py-4 text-base font-semibold text-ocean-deep shadow-[0_18px_40px_rgba(4,26,48,0.45)] transition-all hover:-translate-y-0.5 hover:bg-[#e6f9ff]"
             >
               Request a Demo
             </a>
             <a
-              href={`mailto:${PARTNERS_EMAIL}`}
+              href={`mailto:${SUPPORT_EMAIL}`}
               className="text-sm font-medium text-[#bbefff] transition-opacity hover:opacity-80"
             >
-              {PARTNERS_EMAIL}
+              {SUPPORT_EMAIL_DISPLAY}
             </a>
           </div>
         </div>
