@@ -4,6 +4,25 @@ import SiteNav from "../../components/SiteNav";
 import SiteFooter from "../../components/SiteFooter";
 import { SUPPORT_EMAIL, SUPPORT_EMAIL_DISPLAY } from "../../lib/contact";
 
+const DEMO_SUBJECT = "ShoreDrop Kiosk — demo request";
+
+/** Prefilled so a property manager can send it without writing anything. */
+const DEMO_BODY = `Hi ShoreDrop team,
+
+We'd like to see a demo of the ShoreDrop kiosk for our property. A few details:
+
+Property name:
+City / state:
+Approximate number of rooms:
+Best contact name and phone:
+Good times for a 15-minute call:
+
+Thanks!`;
+
+const DEMO_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
+  DEMO_SUBJECT,
+)}&body=${encodeURIComponent(DEMO_BODY)}`;
+
 export const metadata: Metadata = {
   title: "Kiosk for Hotels",
   description:
@@ -84,7 +103,7 @@ export default function KioskPage() {
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-6">
               <a
-                href="#demo"
+                href={DEMO_MAILTO}
                 className="rounded-full bg-[#1d7bd8] px-7 py-3.5 text-base font-semibold text-white shadow-[0_2px_10px_rgba(8,59,108,0.06)] transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
                 Request a Demo
@@ -212,7 +231,7 @@ export default function KioskPage() {
           </p>
           <div className="mt-10 flex flex-col items-center gap-5">
             <a
-              href={`mailto:${SUPPORT_EMAIL}?subject=ShoreDrop%20Kiosk%20Demo`}
+              href={DEMO_MAILTO}
               className="rounded-full bg-white px-8 py-4 text-base font-semibold text-ocean-deep shadow-[0_18px_40px_rgba(4,26,48,0.45)] transition-all hover:-translate-y-0.5 hover:bg-[#e6f9ff]"
             >
               Request a Demo
