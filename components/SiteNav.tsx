@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { FaApple } from "react-icons/fa";
 import { Button } from "./button";
 import CartDrawer from "./CartDrawer";
+import { IOS_APP_STORE_URL, KIOSK_LANDING_URL } from "../lib/app-links";
 
 const SiteNav = () => {
   return (
@@ -17,7 +19,7 @@ const SiteNav = () => {
           <span className="text-xl font-semibold text-[#083b6c]">ShoreDrop</span>
         </Link>
 
-        <div className="ml-auto hidden items-center gap-6 md:flex">
+        <div className="ml-auto hidden items-center gap-5 lg:flex">
           <a href="/#features" className="text-sm font-medium text-muted-foreground hover:text-[#083b6c]">
             Features
           </a>
@@ -27,6 +29,14 @@ const SiteNav = () => {
           <Link href="/private-events" className="text-sm font-medium text-muted-foreground hover:text-[#083b6c]">
             Private Events
           </Link>
+          <a
+            href={KIOSK_LANDING_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-muted-foreground hover:text-[#083b6c]"
+          >
+            Kiosk
+          </a>
           <Link
             href="/food"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-[#083b6c]"
@@ -45,13 +55,31 @@ const SiteNav = () => {
           <Link href="/orders" className="text-sm font-medium text-muted-foreground hover:text-[#083b6c]">
             Orders
           </Link>
+          <a
+            href={IOS_APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-[#083b6c]"
+          >
+            <FaApple size={15} />
+            Get App
+          </a>
           <CartDrawer />
           <Button asChild size="sm" className="rounded-full bg-[#083b6c] px-5 hover:bg-[#0a4a85]">
             <Link href="/#services">Book Now</Link>
           </Button>
         </div>
 
-        <div className="ml-auto flex items-center gap-1 md:hidden">
+        <div className="ml-auto flex items-center gap-1 lg:hidden">
+          <a
+            href={IOS_APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Get the ShoreDrop iOS app"
+            className="rounded-full p-2 text-[#083b6c] hover:bg-[#e6f9ff]"
+          >
+            <FaApple size={18} />
+          </a>
           <Link
             href="/orders"
             className="rounded-full px-2 py-2 text-xs font-semibold text-[#083b6c] hover:bg-[#e6f9ff]"

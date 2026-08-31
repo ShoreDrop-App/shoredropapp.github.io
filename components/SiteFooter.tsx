@@ -1,5 +1,6 @@
 import { Instagram, Linkedin, Facebook } from "lucide-react";
 import { FaTiktok } from "react-icons/fa";
+import { IOS_APP_STORE_URL, KIOSK_LANDING_URL } from "../lib/app-links";
 
 const SiteFooter = () => {
   return (
@@ -29,6 +30,26 @@ const SiteFooter = () => {
               <li><a href="/mission" className="hover:text-ocean-deep transition-colors">Our mission</a></li>
               <li><a href="/blog" className="hover:text-ocean-deep transition-colors">Blog</a></li>
               <li><a href="/app" className="hover:text-ocean-deep transition-colors">Mobile app</a></li>
+              <li>
+                <a
+                  href={KIOSK_LANDING_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-ocean-deep transition-colors"
+                >
+                  Kiosk for hotels
+                </a>
+              </li>
+              <li>
+                <a
+                  href={IOS_APP_STORE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-ocean-deep transition-colors"
+                >
+                  Get the app
+                </a>
+              </li>
             </ul>
           </div>
 
