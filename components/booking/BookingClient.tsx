@@ -59,6 +59,7 @@ import { CONTACT_PHONE_REQUIRED_MESSAGE, isValidContactPhone } from "../../lib/o
 import { SMS_CONSENT_REQUIRED_MESSAGE } from "../../lib/ordering/smsConsent";
 import SmsConsentCheckbox from "../SmsConsentCheckbox";
 import { rememberWebOrder } from "../../lib/ordering/webOrders";
+import { assertOrderingOpen, fetchOrderingStatus } from "../../lib/services/orderingEnabled";
 import { toast } from "sonner";
 
 const STEPS = ["Date", "Package", "Duration", "Location", "Pay"] as const;
@@ -94,7 +95,20 @@ export default function BookingClient() {
   const [appliedPromoCode, setAppliedPromoCode] = useState("");
   const [promoBusy, setPromoBusy] = useState(false);
   const [promoError, setPromoError] = useState("");
+  const [orderingEnabled, setOrderingEnabled] = useState(true);
   const confirmRef = useRef<((clientSecret: string) => Promise<string | undefined>) | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchOrderingStatus().then((status) => {
+      if (cancelled || !status.known) return;
+      setOrderingEnabled(status.enabled);
+      if (!status.enabled) setServiceDate(null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const pkg = search.get("package") as PackageId | null;
@@ -259,7 +273,7 @@ export default function BookingClient() {
   }, [poolReady, serverPool, mode, packageId, customQty]);
 
   const canContinue = () => {
-    if (step === 0) return Boolean(serviceDate);
+    if (step === 0) return orderingEnabled && Boolean(serviceDate);
     if (step === 1) {
       if (mode === "package") return selectionAvailable;
       return selectionAvailable && gearMerchandise + 1e-6 >= CUSTOM_MIN_SUBTOTAL_USD;
@@ -305,6 +319,12 @@ export default function BookingClient() {
 
   const placeOrder = async () => {
     if (!serviceDate || !location) return;
+    try {
+      await assertOrderingOpen();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ordering is paused right now.");
+      return;
+    }
     if (authRequiredMode && !authUser) {
       toast.error("Sign in to place your order.");
       return;
@@ -564,10 +584,20 @@ export default function BookingClient() {
             <p className="text-sm text-muted-foreground">
               Next we&apos;ll show which setups are still available for that date.
             </p>
+            {!orderingEnabled ? (
+              <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
+                Ordering is paused right now. On-Demand and future dates are closed until staff turn it back on.
+              </p>
+            ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
+                disabled={!orderingEnabled}
                 onClick={() => {
+                  if (!orderingEnabled) {
+                    toast.error("Ordering is paused right now.");
+                    return;
+                  }
                   if (isSameDayGearCutoffPassed()) {
                     toast.error("Same-day booking closed after 4:00 PM Eastern.");
                     return;
@@ -576,6 +606,7 @@ export default function BookingClient() {
                 }}
                 className={cn(
                   "rounded-2xl border-2 p-4 text-left",
+                  !orderingEnabled && "cursor-not-allowed opacity-60",
                   serviceDate && isSameEasternDay(serviceDate, new Date())
                     ? "border-[#083b6c] bg-[#e6f9ff]"
                     : "border-border bg-white",
@@ -583,25 +614,35 @@ export default function BookingClient() {
               >
                 <p className="font-bold text-[#083b6c]">On-Demand (today)</p>
                 <p className="text-xs text-muted-foreground">
-                  +${ON_DEMAND_PACKAGE_SURCHARGE_USD.toFixed(2)} same-day fee
+                  {!orderingEnabled
+                    ? "Paused"
+                    : `+$${ON_DEMAND_PACKAGE_SURCHARGE_USD.toFixed(2)} same-day fee`}
                 </p>
               </button>
               <button
                 type="button"
+                disabled={!orderingEnabled}
                 onClick={() => {
+                  if (!orderingEnabled) {
+                    toast.error("Ordering is paused right now.");
+                    return;
+                  }
                   const d = new Date();
                   d.setDate(d.getDate() + 1);
                   setServiceDate(startOfDay(d));
                 }}
                 className={cn(
                   "rounded-2xl border-2 p-4 text-left",
+                  !orderingEnabled && "cursor-not-allowed opacity-60",
                   serviceDate && !isSameEasternDay(serviceDate, new Date())
                     ? "border-[#083b6c] bg-[#e6f9ff]"
                     : "border-border bg-white",
                 )}
               >
                 <p className="font-bold text-[#083b6c]">Pre-order</p>
-                <p className="text-xs text-muted-foreground">Pick a future date below</p>
+                <p className="text-xs text-muted-foreground">
+                  {!orderingEnabled ? "Paused" : "Pick a future date below"}
+                </p>
               </button>
             </div>
             <div>
@@ -609,6 +650,7 @@ export default function BookingClient() {
               <Input
                 id="svc-date"
                 type="date"
+                disabled={!orderingEnabled}
                 className="mt-1 h-12 rounded-xl"
                 min={
                   isSameDayGearCutoffPassed()
@@ -617,7 +659,7 @@ export default function BookingClient() {
                 }
                 value={serviceDate ? easternDateKey(serviceDate) : ""}
                 onChange={(e) => {
-                  if (!e.target.value) return;
+                  if (!orderingEnabled || !e.target.value) return;
                   const [y, m, d] = e.target.value.split("-").map(Number);
                   setServiceDate(startOfDay(new Date(y, m - 1, d)));
                 }}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { startOfDay } from "date-fns";
@@ -43,6 +43,7 @@ import { CONTACT_PHONE_REQUIRED_MESSAGE, isValidContactPhone } from "../../../li
 import { SMS_CONSENT_REQUIRED_MESSAGE } from "../../../lib/ordering/smsConsent";
 import SmsConsentCheckbox from "../../../components/SmsConsentCheckbox";
 import { rememberWebOrder } from "../../../lib/ordering/webOrders";
+import { assertOrderingOpen, fetchOrderingStatus } from "../../../lib/services/orderingEnabled";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
@@ -68,10 +69,22 @@ export default function FoodCheckoutPage() {
   const [appliedPromoCode, setAppliedPromoCode] = useState("");
   const [promoBusy, setPromoBusy] = useState(false);
   const [promoError, setPromoError] = useState("");
+  const [orderingEnabled, setOrderingEnabled] = useState(true);
   const confirmRef = useRef<((clientSecret: string) => Promise<string | undefined>) | null>(null);
 
   const serviceDate = useMemo(() => startOfDay(new Date()), []);
   const windowOpen = isFoodDrinkOrderWindowOpen();
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchOrderingStatus().then((status) => {
+      if (cancelled || !status.known) return;
+      setOrderingEnabled(status.enabled);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const availableSlots = useMemo(() => {
     const nowMins = easternMinutesSinceMidnight(new Date());
@@ -172,6 +185,16 @@ export default function FoodCheckoutPage() {
   const placeOrder = async () => {
     if (authRequiredMode && !authUser) {
       toast.error("Sign in to place your order.");
+      return;
+    }
+    if (!orderingEnabled) {
+      toast.error("Ordering is paused right now.");
+      return;
+    }
+    try {
+      await assertOrderingOpen();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ordering is paused right now.");
       return;
     }
     if (!windowOpen) {
@@ -303,7 +326,11 @@ export default function FoodCheckoutPage() {
             , then checkout gear + food together in booking — your food bag is saved.
           </div>
 
-          {!windowOpen ? (
+          {!orderingEnabled ? (
+            <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
+              Ordering is paused right now. Food checkout is closed until staff turn it back on.
+            </p>
+          ) : !windowOpen ? (
             <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
               Food ordering is closed right now. Open {FOOD_SCHEDULE_LABEL}.
             </p>
@@ -314,7 +341,7 @@ export default function FoodCheckoutPage() {
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <button
                 type="button"
-                disabled={!asapTime}
+                disabled={!orderingEnabled || !asapTime}
                 onClick={() => setTimingMode("asap")}
                 className={cn(
                   "rounded-xl border-2 p-3 text-left text-sm",
@@ -325,9 +352,11 @@ export default function FoodCheckoutPage() {
               </button>
               <button
                 type="button"
+                disabled={!orderingEnabled}
                 onClick={() => setTimingMode("schedule")}
                 className={cn(
                   "rounded-xl border-2 p-3 text-left text-sm",
+                  !orderingEnabled && "cursor-not-allowed opacity-60",
                   timingMode === "schedule" ? "border-[#083b6c] bg-[#e6f9ff]" : "border-border",
                 )}
               >
@@ -520,7 +549,7 @@ export default function FoodCheckoutPage() {
           ) : null}
           <Button
             className="mt-5 w-full rounded-full bg-[#083b6c]"
-            disabled={submitting || !windowOpen || !name.trim() || !isValidContactPhone(phone) || !smsConsent}
+            disabled={submitting || !orderingEnabled || !windowOpen || !name.trim() || !isValidContactPhone(phone) || !smsConsent}
             onClick={() => void placeOrder()}
           >
             {submitting ? "Placing order…" : `Place order · $${totals.orderTotalUsd.toFixed(2)}`}
