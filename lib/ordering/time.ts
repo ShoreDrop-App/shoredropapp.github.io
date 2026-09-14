@@ -2,15 +2,21 @@ import { addHours } from "date-fns";
 import { fromZonedTime } from "date-fns-tz/fromZonedTime";
 import { formatInTimeZone } from "date-fns-tz/formatInTimeZone";
 
-const TZ = "America/New_York";
+const DEFAULT_TZ = "America/New_York";
 
-export function easternDateKey(d: Date): string {
-  return d.toLocaleDateString("en-CA", { timeZone: TZ });
+export function zonedDateKey(d: Date, timeZone = DEFAULT_TZ): string {
+  return d.toLocaleDateString("en-CA", { timeZone });
 }
 
-export function easternMinutesSinceMidnight(d: Date): number {
+/** Local-calendar Date for “today” in `timeZone` (noon, so DST does not shift the day). */
+export function zonedCalendarDate(now = new Date(), timeZone = DEFAULT_TZ): Date {
+  const [y, m, d] = zonedDateKey(now, timeZone).split("-").map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0, 0);
+}
+
+export function zonedMinutesSinceMidnight(d: Date, timeZone = DEFAULT_TZ): number {
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: TZ,
+    timeZone,
     hour: "numeric",
     minute: "numeric",
     hour12: false,
@@ -20,6 +26,14 @@ export function easternMinutesSinceMidnight(d: Date): number {
   return hour * 60 + minute;
 }
 
+export function easternDateKey(d: Date): string {
+  return zonedDateKey(d, DEFAULT_TZ);
+}
+
+export function easternMinutesSinceMidnight(d: Date): number {
+  return zonedMinutesSinceMidnight(d, DEFAULT_TZ);
+}
+
 /** Food ordering window: 10:00 AM ≤ t < 4:00 PM Eastern. */
 export function isFoodDrinkOrderWindowOpen(now = new Date()): boolean {
   const t = easternMinutesSinceMidnight(now);
@@ -27,8 +41,8 @@ export function isFoodDrinkOrderWindowOpen(now = new Date()): boolean {
 }
 
 /** Same-day gear cutoff: after 4 PM Eastern, today is disabled. */
-export function isSameDayGearCutoffPassed(now = new Date()): boolean {
-  return easternMinutesSinceMidnight(now) >= 16 * 60;
+export function isSameDayGearCutoffPassed(now = new Date(), timeZone = DEFAULT_TZ): boolean {
+  return zonedMinutesSinceMidnight(now, timeZone) >= 16 * 60;
 }
 
 export function parseBeachStartClock(label: string): { hour: number; minute: number } | null {
@@ -42,20 +56,29 @@ export function parseBeachStartClock(label: string): { hour: number; minute: num
   return { hour: h, minute };
 }
 
-export function beachWallStartToInstant(serviceDate: Date, startTimeLabel: string): Date | null {
+export function beachWallStartToInstant(
+  serviceDate: Date,
+  startTimeLabel: string,
+  timeZone = DEFAULT_TZ,
+): Date | null {
   const clock = parseBeachStartClock(startTimeLabel);
   if (!clock) return null;
   return fromZonedTime(
     new Date(serviceDate.getFullYear(), serviceDate.getMonth(), serviceDate.getDate(), clock.hour, clock.minute, 0, 0),
-    TZ,
+    timeZone,
   );
 }
 
-export function formatBookingEndTime(serviceDate: Date, startTimeLabel: string, durationHours: number): string {
-  const start = beachWallStartToInstant(serviceDate, startTimeLabel);
+export function formatBookingEndTime(
+  serviceDate: Date,
+  startTimeLabel: string,
+  durationHours: number,
+  timeZone = DEFAULT_TZ,
+): string {
+  const start = beachWallStartToInstant(serviceDate, startTimeLabel, timeZone);
   if (!start) return "";
   try {
-    return formatInTimeZone(addHours(start, durationHours), TZ, "h:mm a");
+    return formatInTimeZone(addHours(start, durationHours), timeZone, "h:mm a");
   } catch {
     return "";
   }
@@ -69,13 +92,14 @@ export function rentalEndsAfterPickupCutoff(
   startTimeLabel: string,
   durationHours: number,
   cutoffHour = GEAR_PICKUP_CUTOFF_HOUR_EASTERN,
+  timeZone = DEFAULT_TZ,
 ): boolean {
   try {
-    const start = beachWallStartToInstant(serviceDate, startTimeLabel);
+    const start = beachWallStartToInstant(serviceDate, startTimeLabel, timeZone);
     if (!start) return false;
     const end = addHours(start, durationHours);
     const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: TZ,
+      timeZone,
       hour: "numeric",
       minute: "numeric",
       hour12: false,
@@ -196,4 +220,8 @@ export function computeCheckoutTotals(input: {
 /** Calendar day equality in Eastern. */
 export function isSameEasternDay(a: Date, b: Date): boolean {
   return easternDateKey(a) === easternDateKey(b);
+}
+
+export function isSameZonedDay(a: Date, b: Date, timeZone: string): boolean {
+  return zonedDateKey(a, timeZone) === zonedDateKey(b, timeZone);
 }

@@ -1,15 +1,14 @@
 import type { PackageId } from "./catalog";
+import { MARKETS, type MarketId } from "./markets";
 
-/** On-hand caps — keep in sync with Cap app `config/inventory.ts`. */
-export const INVENTORY_MAX = {
-  chairs: 40,
-  umbrellas: 6,
-  smallCoolers: 5,
-  largeCoolers: 13,
-  beachTents: 11,
-} as const;
+/** Virginia Beach caps (legacy). Prefer {@link inventoryMaxFor}. */
+export const INVENTORY_MAX = MARKETS.vb.inventory;
 
 export type InventoryBucket = keyof typeof INVENTORY_MAX;
+
+export function inventoryMaxFor(marketId: MarketId = "vb") {
+  return MARKETS[marketId].inventory;
+}
 
 export const INVENTORY_BUCKET_LABEL: Record<InventoryBucket, string> = {
   chairs: "Beach chairs",
@@ -46,11 +45,13 @@ export function emptyPool(): Record<InventoryBucket, number> {
 
 export function remainingPool(
   serverOutstanding: Record<InventoryBucket, number> | null,
+  marketId: MarketId = "vb",
 ): Record<InventoryBucket, number> {
+  const caps = inventoryMaxFor(marketId);
   const out = emptyPool();
-  (Object.keys(INVENTORY_MAX) as InventoryBucket[]).forEach((k) => {
+  (Object.keys(caps) as InventoryBucket[]).forEach((k) => {
     const used = serverOutstanding?.[k] ?? 0;
-    out[k] = Math.max(0, INVENTORY_MAX[k] - used);
+    out[k] = Math.max(0, caps[k] - used);
   });
   return out;
 }
@@ -58,9 +59,10 @@ export function remainingPool(
 export function canSellPackage(
   packageId: PackageId,
   serverOutstanding: Record<InventoryBucket, number> | null,
+  marketId: MarketId = "vb",
 ): boolean {
   if (!serverOutstanding) return false;
-  const rem = remainingPool(serverOutstanding);
+  const rem = remainingPool(serverOutstanding, marketId);
   const need = PACKAGE_STOCK_USE[packageId] ?? {};
   return (Object.keys(need) as InventoryBucket[]).every((k) => (need[k] ?? 0) <= rem[k]);
 }
@@ -68,9 +70,10 @@ export function canSellPackage(
 export function canSellCustomQty(
   qty: Record<string, number>,
   serverOutstanding: Record<InventoryBucket, number> | null,
+  marketId: MarketId = "vb",
 ): boolean {
   if (!serverOutstanding) return false;
-  const rem = remainingPool(serverOutstanding);
+  const rem = remainingPool(serverOutstanding, marketId);
   const need = emptyPool();
   for (const [sku, q] of Object.entries(qty)) {
     if (q <= 0) continue;
@@ -87,11 +90,12 @@ export function canSellCustomQty(
 export function remainingCustomUnits(
   sku: string,
   serverOutstanding: Record<InventoryBucket, number> | null,
+  marketId: MarketId = "vb",
 ): number {
   if (!serverOutstanding) return 0;
   const use = CUSTOM_SKU_BUCKETS[sku];
   if (!use) return Number.POSITIVE_INFINITY;
-  const rem = remainingPool(serverOutstanding);
+  const rem = remainingPool(serverOutstanding, marketId);
   return Math.min(
     ...(Object.keys(use) as InventoryBucket[]).map((k) =>
       Math.floor(rem[k] / Math.max(1, use[k] ?? 1)),

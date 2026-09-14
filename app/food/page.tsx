@@ -7,7 +7,7 @@ import { FOOD_RESTAURANTS, FOOD_SCHEDULE_LABEL } from "../../lib/ordering/catalo
 
 export const metadata: Metadata = {
   title: "Food & Drinks — ShoreDrop",
-  description: "Order from Waterman's — delivered to your beach setup in Virginia Beach.",
+  description: "Order from Waterman's — delivered to your beach setup in Virginia Beach (not yet in Bay County).",
   alternates: { canonical: "/food" },
 };
 
@@ -21,7 +21,7 @@ export default function FoodPage() {
         </span>
         <h1 className="mt-4 text-4xl font-semibold text-[#083b6c]">Beach Bites, delivered to your setup.</h1>
         <p className="mt-2 text-muted-foreground">
-          Ordering open {FOOD_SCHEDULE_LABEL}. Same prices as the app.
+          Ordering open {FOOD_SCHEDULE_LABEL}. Virginia Beach only for now — Panama City Beach food is coming soon.
         </p>
         <p className="mt-3 text-sm text-[#083b6c]/80">
           Add food to your bag, then add{" "}

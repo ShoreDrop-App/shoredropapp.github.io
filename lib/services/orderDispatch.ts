@@ -5,6 +5,7 @@ import {
   getRestInsertMinimalHeaders,
   getRestUrl,
 } from "./supabase";
+import { refundPaymentIntent } from "./stripePayment";
 
 export type OrderLineItem = {
   id: string;
@@ -31,7 +32,9 @@ export async function placeOrderAndDispatch(input: {
   stripePaymentIntentId?: string;
   locationDisplayName: string;
   locationFullAddress: string;
+  marketId?: string;
   serviceDate: Date;
+  serviceDateKey?: string;
   startTime: string;
   endTime: string;
   crewNotes?: string;
@@ -54,7 +57,8 @@ export async function placeOrderAndDispatch(input: {
     payment_status: input.stripePaymentIntentId ? "paid" : "pending",
     location_display_name: input.locationDisplayName,
     location_full_address: input.locationFullAddress,
-    service_date: easternDateKey(input.serviceDate),
+    market_id: input.marketId === "pcb" ? "pcb" : "vb",
+    service_date: input.serviceDateKey || easternDateKey(input.serviceDate),
     start_time: input.startTime,
     end_time: input.endTime,
     crew_notes: input.crewNotes || null,
@@ -65,7 +69,7 @@ export async function placeOrderAndDispatch(input: {
     status: "confirmed",
   };
 
-  const ordersResponse = await fetch(getRestUrl("orders"), {
+  let ordersResponse = await fetch(getRestUrl("orders"), {
     method: "POST",
     headers: getRestInsertMinimalHeaders(),
     body: JSON.stringify(orderPayload),
@@ -79,7 +83,26 @@ export async function placeOrderAndDispatch(input: {
     } catch {
       /* ignore */
     }
-    throw new Error(`Failed to create order (${ordersResponse.status}).${detail}`.trim());
+    if (/market_id/i.test(detail)) {
+      const { market_id: _m, ...legacy } = orderPayload;
+      ordersResponse = await fetch(getRestUrl("orders"), {
+        method: "POST",
+        headers: getRestInsertMinimalHeaders(),
+        body: JSON.stringify(legacy),
+      });
+      if (ordersResponse.ok) detail = "";
+    }
+    if (!ordersResponse.ok) {
+      if (input.stripePaymentIntentId) {
+        await refundPaymentIntent(input.stripePaymentIntentId);
+      }
+      if (/ORDERS_PAUSED|SAME_DAY_ORDERS_PAUSED/i.test(detail)) {
+        throw new Error(
+          "Same-day delivery is paused right now. Pick a future date — any charge is being refunded.",
+        );
+      }
+      throw new Error(`Failed to create order (${ordersResponse.status}).${detail}`.trim());
+    }
   }
 
   const itemPayload = input.items.map((item) => ({
@@ -117,8 +140,11 @@ export async function placeOrderAndDispatch(input: {
       method: "DELETE",
       headers: getRestInsertMinimalHeaders(),
     }).catch(() => undefined);
+    if (input.stripePaymentIntentId) {
+      await refundPaymentIntent(input.stripePaymentIntentId);
+    }
     if (/GEAR_POOL_SOLD_OUT/i.test(detail)) {
-      throw new Error("That gear just sold out for this date. Pick fewer items or another day.");
+      throw new Error("That gear just sold out for this date. Pick fewer items or another day. Any charge is being refunded.");
     }
     throw new Error(detail || `Failed to save order items (${itemsResponse.status}).`);
   }

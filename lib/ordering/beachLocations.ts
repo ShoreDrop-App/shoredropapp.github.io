@@ -52,3 +52,32 @@ export const BEACH_LOCATION_OPTIONS: BeachStreetOption[] = Array.from(
 )
   .filter((n) => !EXCLUDED.has(n))
   .map(build);
+
+export type DropSpot = { id: string; displayName: string; fullAddress: string };
+
+export const PCB_DROP_SPOTS: DropSpot[] = [
+  "95",
+  "92",
+  "89",
+  "86",
+  "84",
+  "82",
+  "81",
+  "80",
+  "79",
+  "76B",
+].map((id) => ({
+  id: `access-${id}`,
+  displayName: `Beach Access ${id}`,
+  fullAddress: `Beach Access ${id}, Panama City Beach, FL`,
+}));
+
+export function dropSpotsForMarket(marketId: "vb" | "pcb"): DropSpot[] {
+  if (marketId === "pcb") return PCB_DROP_SPOTS;
+  return BEACH_LOCATION_OPTIONS.map((o) => ({
+    id: o.streetName,
+    displayName: o.displayName,
+    fullAddress: o.fullAddress,
+  }));
+}
+

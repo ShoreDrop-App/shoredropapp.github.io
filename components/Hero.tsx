@@ -8,7 +8,7 @@ import { ArrowRight, Star } from "lucide-react";
 const HERO_IMAGE = "/assets/hero-beach.jpg";
 
 const BOTTOM_POINTS = [
-  "42nd–86th Street coverage",
+  "Virginia Beach & Bay County coverage",
   "Setup before you arrive",
   "Local & family-run",
 ] as const;
@@ -22,7 +22,7 @@ const Hero = () => {
           <div className="flex flex-col justify-center gap-4 lg:gap-5">
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#bbefff] bg-white/80 px-3 py-1 text-xs font-semibold tracking-wide text-[#083b6c]">
               <span className="h-1.5 w-1.5 rounded-full bg-[#3b82b6]" />
-              Live in Virginia Beach · Summer 2026
+              Live in Virginia Beach · Now serving Bay County, FL
             </span>
 
             <div className="space-y-3">
@@ -32,7 +32,7 @@ const Hero = () => {
               </h1>
               <p className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-[1.05rem]">
                 Premium chairs, umbrellas, and gear — set up before you arrive and packed up after you leave.
-                Plus meals from local favorites, delivered right to your spot.
+                Plus meals from local favorites in Virginia Beach, delivered right to your spot.
               </p>
             </div>
 

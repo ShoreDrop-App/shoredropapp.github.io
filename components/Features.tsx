@@ -12,13 +12,13 @@ const steps = [
     number: "2",
     icon: MapPin,
     title: "Choose your spot",
-    description: "Pick your street (42nd–86th) and setup time. We claim a prime stretch for you.",
+    description: "Pick Virginia Beach or Panama City Beach (Bay County), then your street or beach access and setup time.",
   },
   {
     number: "3",
     icon: UtensilsCrossed,
     title: "Relax & order food",
-    description: "Settle in, then order from Waterman's — delivered to your towel during food hours.",
+    description: "Settle in, then order from local partners where available — delivered to your towel during food hours.",
   },
   {
     number: "4",

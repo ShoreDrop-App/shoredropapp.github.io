@@ -225,7 +225,13 @@ export default function OrdersClient() {
   }, [pollTargets, chatOrderId]);
 
   const active = useMemo(() => orders.filter((o) => !isPastStatus(o.status)), [orders]);
-  const past = useMemo(() => orders.filter((o) => isPastStatus(o.status)), [orders]);
+  const past = useMemo(
+    () =>
+      orders
+        .filter((o) => isPastStatus(o.status))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [orders],
+  );
   const chatOrder = orders.find((o) => o.id === chatOrderId) ?? null;
   const extendOrder = orders.find((o) => o.id === extendOrderId) ?? null;
 

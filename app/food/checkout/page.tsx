@@ -21,6 +21,7 @@ import {
 import { BEACH_LOCATION_OPTIONS } from "../../../lib/ordering/beachLocations";
 import {
   computeCheckoutTotals,
+  easternDateKey,
   easternMinutesSinceMidnight,
   formatBookingEndTime,
   isFoodDrinkOrderWindowOpen,
@@ -43,7 +44,15 @@ import { CONTACT_PHONE_REQUIRED_MESSAGE, isValidContactPhone } from "../../../li
 import { SMS_CONSENT_REQUIRED_MESSAGE } from "../../../lib/ordering/smsConsent";
 import SmsConsentCheckbox from "../../../components/SmsConsentCheckbox";
 import { rememberWebOrder } from "../../../lib/ordering/webOrders";
+import {
+  checkoutFingerprint,
+  checkoutIdempotencyKey,
+  clearPendingCheckoutPayment,
+  reusePendingPayment,
+  writePendingCheckoutPayment,
+} from "../../../lib/ordering/pendingCheckoutPayment";
 import { assertOrderingOpen, fetchOrderingStatus } from "../../../lib/services/orderingEnabled";
+import { assertCheckoutAllowed, fetchSameDayOrdersEnabled } from "../../../lib/services/sameDayOrdering";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
@@ -70,6 +79,7 @@ export default function FoodCheckoutPage() {
   const [promoBusy, setPromoBusy] = useState(false);
   const [promoError, setPromoError] = useState("");
   const [orderingEnabled, setOrderingEnabled] = useState(true);
+  const [sameDayEnabled, setSameDayEnabled] = useState(true);
   const confirmRef = useRef<((clientSecret: string) => Promise<string | undefined>) | null>(null);
 
   const serviceDate = useMemo(() => startOfDay(new Date()), []);
@@ -80,6 +90,9 @@ export default function FoodCheckoutPage() {
     void fetchOrderingStatus().then((status) => {
       if (cancelled || !status.known) return;
       setOrderingEnabled(status.enabled);
+    });
+    void fetchSameDayOrdersEnabled("vb").then((enabled) => {
+      if (!cancelled) setSameDayEnabled(enabled);
     });
     return () => {
       cancelled = true;
@@ -201,6 +214,12 @@ export default function FoodCheckoutPage() {
       toast.error(`Food delivery is available ${FOOD_SCHEDULE_LABEL}.`);
       return;
     }
+    try {
+      await assertCheckoutAllowed("vb", easternDateKey(serviceDate));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Ordering is paused right now.");
+      return;
+    }
     if (subtotal + 1e-6 < minimum) {
       toast.error(`Add more to reach the $${minimum.toFixed(2)} restaurant minimum.`);
       return;
@@ -225,19 +244,51 @@ export default function FoodCheckoutPage() {
       toast.error("Online checkout isn’t configured yet.");
       return;
     }
+    if (submitting) return;
     if (!stripeReady || !confirmRef.current) {
       toast.error("Complete payment details first.");
       return;
     }
 
     setSubmitting(true);
+    const serviceDateKey = easternDateKey(serviceDate);
+    const amountCents = Math.round(totals.orderTotalUsd * 100);
+    const fingerprint = checkoutFingerprint([
+      "vb",
+      serviceDateKey,
+      "food",
+      streetName,
+      selectedStart,
+      amountCents,
+      lines.map((l) => `${l.menuItemId}:${l.quantity}`).join(","),
+    ]);
     try {
-      const clientSecret = await createPaymentIntentClientSecret(
-        Math.round(totals.orderTotalUsd * 100),
-        appliedPromoCode || undefined,
-      );
-      const paymentIntentId = await confirmRef.current(clientSecret);
-      if (!paymentIntentId) throw new Error("Payment did not complete.");
+      let paymentIntentId = reusePendingPayment({
+        amountCents,
+        marketId: "vb",
+        serviceDate: serviceDateKey,
+        fingerprint,
+      });
+      if (!paymentIntentId) {
+        const clientSecret = await createPaymentIntentClientSecret(
+          amountCents,
+          appliedPromoCode || undefined,
+          {
+            marketId: "vb",
+            serviceDate: serviceDateKey,
+            idempotencyKey: checkoutIdempotencyKey(fingerprint),
+          },
+        );
+        paymentIntentId = (await confirmRef.current(clientSecret)) ?? "";
+        if (!paymentIntentId) throw new Error("Payment did not complete.");
+        writePendingCheckoutPayment({
+          paymentIntentId,
+          amountCents,
+          marketId: "vb",
+          serviceDate: serviceDateKey,
+          fingerprint,
+        });
+      }
 
       const { orderId, trackingToken } = await placeOrderAndDispatch({
         customerName: name.trim(),
@@ -247,7 +298,9 @@ export default function FoodCheckoutPage() {
         stripePaymentIntentId: paymentIntentId,
         locationDisplayName: location.displayName,
         locationFullAddress: location.fullAddress,
+        marketId: "vb",
         serviceDate,
+        serviceDateKey,
         startTime: selectedStart,
         endTime,
         crewNotes: `Food: ${restaurant?.name ?? "Food"}${
@@ -285,6 +338,7 @@ export default function FoodCheckoutPage() {
       }
 
       clear();
+      clearPendingCheckoutPayment();
       router.push(
         `/food/confirmation?id=${orderId}&eta=${encodeURIComponent(FOOD_ASAP_ETA_LABEL)}${
           trackingToken ? `&token=${encodeURIComponent(trackingToken)}` : ""
@@ -319,6 +373,7 @@ export default function FoodCheckoutPage() {
           </div>
 
           <div className="rounded-2xl border border-[#083b6c]/20 bg-[#e6f9ff]/70 px-4 py-3 text-sm text-[#083b6c]">
+            Virginia Beach only for now — Panama City Beach food is coming soon. Delivery streets are 42nd–86th.
             Want chairs & shade too?{" "}
             <Link href="/#services" className="font-semibold underline underline-offset-2">
               Add a package
@@ -329,6 +384,10 @@ export default function FoodCheckoutPage() {
           {!orderingEnabled ? (
             <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
               Ordering is paused right now. Food checkout is closed until staff turn it back on.
+            </p>
+          ) : !sameDayEnabled ? (
+            <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
+              Same-day delivery is paused in Virginia Beach. Food orders can&apos;t be placed until it&apos;s back on.
             </p>
           ) : !windowOpen ? (
             <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
@@ -549,7 +608,15 @@ export default function FoodCheckoutPage() {
           ) : null}
           <Button
             className="mt-5 w-full rounded-full bg-[#083b6c]"
-            disabled={submitting || !orderingEnabled || !windowOpen || !name.trim() || !isValidContactPhone(phone) || !smsConsent}
+            disabled={
+              submitting ||
+              !orderingEnabled ||
+              !sameDayEnabled ||
+              !windowOpen ||
+              !name.trim() ||
+              !isValidContactPhone(phone) ||
+              !smsConsent
+            }
             onClick={() => void placeOrder()}
           >
             {submitting ? "Placing order…" : `Place order · $${totals.orderTotalUsd.toFixed(2)}`}

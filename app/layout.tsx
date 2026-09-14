@@ -40,6 +40,8 @@ export const metadata: Metadata = {
     "on-demand beach gear",
     "ShoreDrop",
     "Virginia Beach delivery",
+    "Panama City Beach delivery",
+    "Bay County Florida",
   ],
   authors: [{ name: "ShoreDrop LLC" }],
   openGraph: {

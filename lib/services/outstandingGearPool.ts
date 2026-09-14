@@ -7,17 +7,21 @@ import { getRestJsonHeaders, getRestUrl, isSupabaseConfigured } from "./supabase
  */
 export async function fetchOutstandingGearPoolCounts(
   serviceDateKey: string,
+  marketId: string = "vb",
 ): Promise<Record<InventoryBucket, number> | null> {
   if (!isSupabaseConfigured()) return null;
   const day = serviceDateKey.trim().slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
 
   try {
-    const res = await fetch(getRestUrl("rpc/outstanding_gear_pool_counts"), {
-      method: "POST",
-      headers: getRestJsonHeaders(),
-      body: JSON.stringify({ p_service_date: day }),
-    });
+    const post = (body: Record<string, string>) =>
+      fetch(getRestUrl("rpc/outstanding_gear_pool_counts"), {
+        method: "POST",
+        headers: getRestJsonHeaders(),
+        body: JSON.stringify(body),
+      });
+    let res = await post({ p_service_date: day, p_market_id: marketId });
+    if (!res.ok) res = await post({ p_service_date: day });
     if (!res.ok) return null;
     const payload = (await res.json()) as unknown;
     const row = Array.isArray(payload) ? payload[0] : payload;

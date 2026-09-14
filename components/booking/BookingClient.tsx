@@ -25,16 +25,18 @@ import {
   quotedPackagePrice,
 } from "../../lib/ordering/catalog";
 import { useFoodBag } from "../../contexts/FoodBagContext";
-import { BEACH_LOCATION_OPTIONS } from "../../lib/ordering/beachLocations";
+import { dropSpotsForMarket } from "../../lib/ordering/beachLocations";
+import { MARKETS, persistMarket, readStoredMarket, type MarketId } from "../../lib/ordering/markets";
 import {
   computeCheckoutTotals,
-  easternDateKey,
-  easternMinutesSinceMidnight,
   formatBookingEndTime,
   isSameDayGearCutoffPassed,
-  isSameEasternDay,
+  isSameZonedDay,
   parseBeachStartClock,
   rentalEndsAfterPickupCutoff,
+  zonedCalendarDate,
+  zonedDateKey,
+  zonedMinutesSinceMidnight,
   type StripePromoLike,
 } from "../../lib/ordering/time";
 import {
@@ -59,10 +61,18 @@ import { CONTACT_PHONE_REQUIRED_MESSAGE, isValidContactPhone } from "../../lib/o
 import { SMS_CONSENT_REQUIRED_MESSAGE } from "../../lib/ordering/smsConsent";
 import SmsConsentCheckbox from "../SmsConsentCheckbox";
 import { rememberWebOrder } from "../../lib/ordering/webOrders";
+import {
+  checkoutFingerprint,
+  checkoutIdempotencyKey,
+  clearPendingCheckoutPayment,
+  reusePendingPayment,
+  writePendingCheckoutPayment,
+} from "../../lib/ordering/pendingCheckoutPayment";
 import { assertOrderingOpen, fetchOrderingStatus } from "../../lib/services/orderingEnabled";
+import { assertCheckoutAllowed, fetchSameDayOrdersEnabled } from "../../lib/services/sameDayOrdering";
 import { toast } from "sonner";
 
-const STEPS = ["Date", "Package", "Duration", "Location", "Pay"] as const;
+const STEPS = ["City", "Date", "Package", "Duration", "Location", "Pay"] as const;
 
 type Mode = "package" | "custom";
 
@@ -70,14 +80,17 @@ export default function BookingClient() {
   const search = useSearchParams();
   const { user: authUser, initialized: authInitialized, authRequiredMode, signOut } = useCustomerAuth();
   const { lines: foodLines, subtotal: foodSubtotal, clear: clearFoodBag } = useFoodBag();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => (readStoredMarket() ? 1 : 0));
+  const [marketId, setMarketId] = useState<MarketId>(() => readStoredMarket() ?? "vb");
   const [serviceDate, setServiceDate] = useState<Date | null>(null);
   const [durationHours, setDurationHours] = useState(6);
   const [startTime, setStartTime] = useState("9:00 AM");
   const [mode, setMode] = useState<Mode>("package");
   const [packageId, setPackageId] = useState<PackageId>("sandy-duo");
   const [customQty, setCustomQty] = useState<Record<string, number>>({});
-  const [streetName, setStreetName] = useState(BEACH_LOCATION_OPTIONS[10]?.streetName ?? "");
+  const [streetName, setStreetName] = useState(
+    () => dropSpotsForMarket(readStoredMarket() ?? "vb")[0]?.id ?? "",
+  );
   const [tip, setTip] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -96,6 +109,7 @@ export default function BookingClient() {
   const [promoBusy, setPromoBusy] = useState(false);
   const [promoError, setPromoError] = useState("");
   const [orderingEnabled, setOrderingEnabled] = useState(true);
+  const [sameDayEnabled, setSameDayEnabled] = useState(true);
   const confirmRef = useRef<((clientSecret: string) => Promise<string | undefined>) | null>(null);
 
   useEffect(() => {
@@ -116,7 +130,7 @@ export default function BookingClient() {
     if (pkg && PACKAGES.some((p) => p.id === pkg)) {
       setPackageId(pkg);
       setMode("package");
-      setStep(0);
+      setStep(readStoredMarket() ? 1 : 0);
     }
     if (custom && CUSTOM_GEAR.some((g) => g.id === custom)) {
       setMode("custom");
@@ -130,6 +144,20 @@ export default function BookingClient() {
     }
   }, [authUser?.email, email]);
 
+  useEffect(() => {
+    if (marketId === "pcb") clearFoodBag();
+  }, [marketId, clearFoodBag]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchSameDayOrdersEnabled(marketId).then((enabled) => {
+      if (!cancelled) setSameDayEnabled(enabled);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [marketId]);
+
   /** Same outstanding-gear pool RPC as iOS/Android — inventory stays in sync. */
   useEffect(() => {
     if (!serviceDate || !isSupabaseConfigured()) {
@@ -139,9 +167,9 @@ export default function BookingClient() {
     }
     let cancelled = false;
     setPoolReady(false);
-    const day = easternDateKey(serviceDate);
+    const day = zonedDateKey(serviceDate, MARKETS[marketId].timezone);
     const pull = async (isRefresh = false) => {
-      const snap = await fetchOutstandingGearPoolCounts(day);
+      const snap = await fetchOutstandingGearPoolCounts(day, marketId);
       if (!cancelled) {
         setServerPool(snap);
         if (!isRefresh) setPoolReady(true);
@@ -153,7 +181,7 @@ export default function BookingClient() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [serviceDate]);
+  }, [serviceDate, marketId]);
 
   useEffect(() => {
     if (!serverPool) return;
@@ -161,18 +189,24 @@ export default function BookingClient() {
       const next = { ...q };
       let changed = false;
       for (const sku of Object.keys(next)) {
-        while ((next[sku] ?? 0) > 0 && !canSellCustomQty(next, serverPool)) {
+        while ((next[sku] ?? 0) > 0 && !canSellCustomQty(next, serverPool, marketId)) {
           next[sku] = (next[sku] ?? 0) - 1;
           changed = true;
         }
       }
       return changed ? next : q;
     });
-  }, [serverPool]);
+  }, [serverPool, marketId]);
 
-  const todayEastern = useMemo(() => startOfDay(new Date()), []);
-  const isSameDay = serviceDate ? isSameEasternDay(serviceDate, new Date()) : false;
+  const scheduleTz = MARKETS[marketId].timezone;
+  const clockZone = MARKETS[marketId].clockZoneLabel;
+  const todayInMarket = zonedCalendarDate(new Date(), scheduleTz);
+  const isSameDay = serviceDate ? isSameZonedDay(serviceDate, new Date(), scheduleTz) : false;
+  const sameDayCutoffPassed = isSameDayGearCutoffPassed(new Date(), scheduleTz);
+  const sameDayBlocked = !sameDayEnabled || sameDayCutoffPassed;
   const onDemand = isSameDay ? ON_DEMAND_PACKAGE_SURCHARGE_USD : 0;
+  const checkoutSpots = dropSpotsForMarket(marketId);
+  const includeFood = marketId === "vb" && foodLines.length > 0;
 
   const customMerchandiseForHours = useCallback(
     (hours: number, start = startTime) =>
@@ -199,12 +233,12 @@ export default function BookingClient() {
     return customMerchandiseForHours(durationHours, startTime);
   }, [mode, packageId, startTime, durationHours, customMerchandiseForHours]);
 
-  const foodRestaurant = foodLines.length
+  const foodRestaurant = includeFood
     ? getFoodRestaurant(foodLines[0]!.restaurantId)
     : undefined;
-  const foodDeliveryFee = foodLines.length ? (foodRestaurant?.deliveryFee ?? 8.99) : 0;
+  const foodDeliveryFee = includeFood ? (foodRestaurant?.deliveryFee ?? 8.99) : 0;
   const foodMinimum = foodRestaurant?.minimumOrder ?? 24.99;
-  const merchandise = gearMerchandise + foodSubtotal;
+  const merchandise = gearMerchandise + (includeFood ? foodSubtotal : 0);
   const deliveryFees = DELIVERY_FEE + foodDeliveryFee;
 
   const appliedPromoLike = useMemo((): StripePromoLike => {
@@ -224,15 +258,15 @@ export default function BookingClient() {
     promo: appliedPromoLike,
   });
 
-  const location = BEACH_LOCATION_OPTIONS.find((l) => l.streetName === streetName);
-  const endTime = serviceDate ? formatBookingEndTime(serviceDate, startTime, durationHours) : "";
+  const location = checkoutSpots.find((l) => l.id === streetName);
+  const endTime = serviceDate ? formatBookingEndTime(serviceDate, startTime, durationHours, scheduleTz) : "";
   const pkg = PACKAGES.find((p) => p.id === packageId)!;
 
   const pickupFullBlocked = Boolean(
-    serviceDate && startTime && rentalEndsAfterPickupCutoff(serviceDate, startTime, 6),
+    serviceDate && startTime && rentalEndsAfterPickupCutoff(serviceDate, startTime, 6, undefined, scheduleTz),
   );
   const pickupShoreBlocked = Boolean(
-    serviceDate && startTime && rentalEndsAfterPickupCutoff(serviceDate, startTime, 8),
+    serviceDate && startTime && rentalEndsAfterPickupCutoff(serviceDate, startTime, 8, undefined, scheduleTz),
   );
 
   useEffect(() => {
@@ -246,14 +280,14 @@ export default function BookingClient() {
 
   const availableStartTimes = useMemo((): string[] => {
     const times: string[] = [...GEAR_SETUP_START_TIMES];
-    if (!serviceDate || !isSameEasternDay(serviceDate, new Date())) return times;
-    const nowMins = easternMinutesSinceMidnight(new Date());
+    if (!serviceDate || !isSameZonedDay(serviceDate, new Date(), scheduleTz)) return times;
+    const nowMins = zonedMinutesSinceMidnight(new Date(), scheduleTz);
     return times.filter((t) => {
       const clock = parseBeachStartClock(t);
       if (!clock) return false;
       return clock.hour * 60 + clock.minute > nowMins;
     });
-  }, [serviceDate]);
+  }, [serviceDate, scheduleTz]);
 
   useEffect(() => {
     if (!availableStartTimes.includes(startTime) && availableStartTimes[0]) {
@@ -268,18 +302,24 @@ export default function BookingClient() {
 
   const selectionAvailable = useMemo(() => {
     if (!poolReady || !serverPool) return false;
-    if (mode === "package") return canSellPackage(packageId, serverPool);
-    return canSellCustomQty(customQty, serverPool);
-  }, [poolReady, serverPool, mode, packageId, customQty]);
+    if (mode === "package") return canSellPackage(packageId, serverPool, marketId);
+    return canSellCustomQty(customQty, serverPool, marketId);
+  }, [poolReady, serverPool, mode, packageId, customQty, marketId]);
 
   const canContinue = () => {
-    if (step === 0) return orderingEnabled && Boolean(serviceDate);
+    if (step === 0) return Boolean(marketId);
+    if (!orderingEnabled && step >= 1) return false;
     if (step === 1) {
+      if (!serviceDate) return false;
+      if (isSameZonedDay(serviceDate, new Date(), scheduleTz) && sameDayBlocked) return false;
+      return true;
+    }
+    if (step === 2) {
       if (mode === "package") return selectionAvailable;
       return selectionAvailable && gearMerchandise + 1e-6 >= CUSTOM_MIN_SUBTOTAL_USD;
     }
-    if (step === 2) return Boolean(startTime && durationHours && availableStartTimes.length > 0);
-    if (step === 3) return Boolean(location);
+    if (step === 3) return Boolean(startTime && durationHours && availableStartTimes.length > 0);
+    if (step === 4) return Boolean(location);
     return true;
   };
 
@@ -345,42 +385,91 @@ export default function BookingClient() {
       toast.error(`Custom gear needs at least $${CUSTOM_MIN_SUBTOTAL_USD.toFixed(2)}.`);
       return;
     }
-    if (foodLines.length && foodSubtotal + 1e-6 < foodMinimum) {
+    if (includeFood && foodSubtotal + 1e-6 < foodMinimum) {
       toast.error(`${foodRestaurant?.name ?? "Food"} needs at least $${foodMinimum.toFixed(2)}.`);
+      return;
+    }
+    if (isSameDay && sameDayCutoffPassed) {
+      toast.error(`Same-day booking closed after 4:00 PM ${clockZone}.`);
+      return;
+    }
+    const serviceDateKey = zonedDateKey(serviceDate, scheduleTz);
+    try {
+      await assertCheckoutAllowed(marketId, serviceDateKey);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Ordering is paused right now.";
+      toast.error(message);
       return;
     }
     if (!isSupabaseConfigured() || !isStripeConfigured()) {
       toast.error("Online checkout isn’t configured yet. Email Admin@shoredropapp.com or use the app.");
       return;
     }
+    if (submitting) return;
     if (!stripeReady || !confirmRef.current) {
       toast.error("Complete payment details first.");
       return;
     }
 
-    const freshPool = await fetchOutstandingGearPoolCounts(easternDateKey(serviceDate));
+    setSubmitting(true);
+    const freshPool = await fetchOutstandingGearPoolCounts(serviceDateKey, marketId);
     setServerPool(freshPool);
     if (!freshPool) {
       toast.error("Couldn’t check gear availability. Try again in a moment.");
+      setSubmitting(false);
       return;
     }
-    if (mode === "package" && !canSellPackage(packageId, freshPool)) {
+    if (mode === "package" && !canSellPackage(packageId, freshPool, marketId)) {
       toast.error("That package is sold out for this date — pick another or try a different day.");
+      setSubmitting(false);
       return;
     }
-    if (mode === "custom" && !canSellCustomQty(customQty, freshPool)) {
+    if (mode === "custom" && !canSellCustomQty(customQty, freshPool, marketId)) {
       toast.error("Not enough gear left for that custom setup on this date.");
+      setSubmitting(false);
       return;
     }
 
-    setSubmitting(true);
+    const amountCents = Math.round(totals.orderTotalUsd * 100);
+    const fingerprint = checkoutFingerprint([
+      marketId,
+      serviceDateKey,
+      mode,
+      packageId,
+      JSON.stringify(customQty),
+      streetName,
+      startTime,
+      durationHours,
+      amountCents,
+    ]);
+
     try {
-      const clientSecret = await createPaymentIntentClientSecret(
-        Math.round(totals.orderTotalUsd * 100),
-        appliedPromoCode || undefined,
-      );
-      const paymentIntentId = await confirmRef.current(clientSecret);
-      if (!paymentIntentId) throw new Error("Payment did not complete.");
+      let paymentIntentId = reusePendingPayment({
+        amountCents,
+        marketId,
+        serviceDate: serviceDateKey,
+        fingerprint,
+      });
+      if (!paymentIntentId) {
+        const clientSecret = await createPaymentIntentClientSecret(
+          amountCents,
+          appliedPromoCode || undefined,
+          {
+            marketId,
+            serviceDate: serviceDateKey,
+            idempotencyKey: checkoutIdempotencyKey(fingerprint),
+          },
+        );
+        paymentIntentId = (await confirmRef.current(clientSecret)) ?? "";
+        if (!paymentIntentId) throw new Error("Payment did not complete.");
+        writePendingCheckoutPayment({
+          paymentIntentId,
+          amountCents,
+          marketId,
+          serviceDate: serviceDateKey,
+          fingerprint,
+        });
+      }
 
       const gearItems =
         mode === "package"
@@ -408,15 +497,18 @@ export default function BookingClient() {
                 };
               });
 
-      const foodItems = foodLines.map((l) => ({
-        id: l.menuItemId,
-        type: "food" as const,
-        name: l.name,
-        price: l.price,
-        quantity: l.quantity,
-        foodRestaurantId: l.restaurantId,
-        foodRestaurantName: l.restaurantName,
-      }));
+      const foodItems =
+        marketId === "vb"
+          ? foodLines.map((l) => ({
+              id: l.menuItemId,
+              type: "food" as const,
+              name: l.name,
+              price: l.price,
+              quantity: l.quantity,
+              foodRestaurantId: l.restaurantId,
+              foodRestaurantName: l.restaurantName,
+            }))
+          : [];
 
       const items = [...gearItems, ...foodItems];
       const detailLines = [
@@ -437,7 +529,9 @@ export default function BookingClient() {
         stripePaymentIntentId: paymentIntentId,
         locationDisplayName: location.displayName,
         locationFullAddress: location.fullAddress,
+        marketId,
         serviceDate,
+        serviceDateKey,
         startTime,
         endTime,
         crewNotes: [
@@ -471,6 +565,7 @@ export default function BookingClient() {
       }
 
       clearFoodBag();
+      clearPendingCheckoutPayment();
       setConfirmedId(orderId);
       if (dispatchNotified) toast.success("Booking confirmed");
       else toast.success("Booking paid");
@@ -543,8 +638,17 @@ export default function BookingClient() {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-[#083b6c]">Book your beach day</p>
             <p className="text-[11px] text-muted-foreground">
-              Step {step + 1} of {STEPS.length} · {STEPS[step]}
+              {MARKETS[marketId].name} · Step {step + 1} of {STEPS.length} · {STEPS[step]}
             </p>
+            {step > 0 ? (
+              <button
+                type="button"
+                className="text-[11px] font-semibold text-[#3b82b6] hover:underline"
+                onClick={() => setStep(0)}
+              >
+                Change city
+              </button>
+            ) : null}
           </div>
           <span className="hidden items-center gap-1 text-xs text-muted-foreground sm:inline-flex">
             <Lock className="h-3.5 w-3.5" /> Secure checkout
@@ -573,41 +677,80 @@ export default function BookingClient() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-8">
-        {foodLines.length > 0 && step > 0 ? (
+        {includeFood && step > 0 ? (
           <div className="mb-5 rounded-2xl border border-[#083b6c]/20 bg-[#e6f9ff]/70 px-4 py-3 text-sm text-[#083b6c]">
             Food in bag: ${foodSubtotal.toFixed(2)} from {foodRestaurant?.name ?? "partner"} — included at checkout.
           </div>
         ) : null}
         {step === 0 ? (
           <div className="space-y-5">
+            <h2 className="text-2xl font-semibold text-[#083b6c]">Which beach?</h2>
+            <p className="text-sm text-muted-foreground">
+              Virginia Beach or Panama City Beach (Bay County). Same packages — local drop spots next.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(["vb", "pcb"] as MarketId[]).map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    setMarketId(id);
+                    persistMarket(id);
+                    setStreetName(dropSpotsForMarket(id)[0]?.id ?? "");
+                    if (id === "pcb") clearFoodBag();
+                  }}
+                  className={cn(
+                    "rounded-2xl border-2 p-5 text-left",
+                    marketId === id ? "border-[#083b6c] bg-[#e6f9ff]" : "border-border bg-white",
+                  )}
+                >
+                  <p className="font-bold text-[#083b6c]">{MARKETS[id].name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {id === "pcb" ? "Now serving Bay County, FL" : MARKETS[id].serviceAreaLabel}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {step === 1 ? (
+          <div className="space-y-5">
             <h2 className="text-2xl font-semibold text-[#083b6c]">When&apos;s your beach day?</h2>
             <p className="text-sm text-muted-foreground">
-              Next we&apos;ll show which setups are still available for that date.
+              Next we&apos;ll show which setups are still available for that date. Times are {clockZone}.
             </p>
             {!orderingEnabled ? (
               <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
                 Ordering is paused right now. On-Demand and future dates are closed until staff turn it back on.
               </p>
+            ) : !sameDayEnabled ? (
+              <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
+                Same-day delivery is paused at {MARKETS[marketId].name}. Advance dates are still open.
+              </p>
             ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
-                disabled={!orderingEnabled}
+                disabled={!orderingEnabled || sameDayBlocked}
                 onClick={() => {
                   if (!orderingEnabled) {
                     toast.error("Ordering is paused right now.");
                     return;
                   }
-                  if (isSameDayGearCutoffPassed()) {
-                    toast.error("Same-day booking closed after 4:00 PM Eastern.");
+                  if (!sameDayEnabled) {
+                    toast.error("Same-day delivery is paused right now. Pick a future date.");
                     return;
                   }
-                  setServiceDate(todayEastern);
+                  if (sameDayCutoffPassed) {
+                    toast.error(`Same-day booking closed after 4:00 PM ${clockZone}.`);
+                    return;
+                  }
+                  setServiceDate(todayInMarket);
                 }}
                 className={cn(
                   "rounded-2xl border-2 p-4 text-left",
-                  !orderingEnabled && "cursor-not-allowed opacity-60",
-                  serviceDate && isSameEasternDay(serviceDate, new Date())
+                  (!orderingEnabled || sameDayBlocked) && "cursor-not-allowed opacity-60",
+                  serviceDate && isSameZonedDay(serviceDate, new Date(), scheduleTz)
                     ? "border-[#083b6c] bg-[#e6f9ff]"
                     : "border-border bg-white",
                 )}
@@ -616,7 +759,11 @@ export default function BookingClient() {
                 <p className="text-xs text-muted-foreground">
                   {!orderingEnabled
                     ? "Paused"
-                    : `+$${ON_DEMAND_PACKAGE_SURCHARGE_USD.toFixed(2)} same-day fee`}
+                    : !sameDayEnabled
+                      ? "Paused for today"
+                      : sameDayCutoffPassed
+                        ? `Closed after 4:00 PM ${clockZone}`
+                        : `+$${ON_DEMAND_PACKAGE_SURCHARGE_USD.toFixed(2)} same-day fee`}
                 </p>
               </button>
               <button
@@ -634,7 +781,7 @@ export default function BookingClient() {
                 className={cn(
                   "rounded-2xl border-2 p-4 text-left",
                   !orderingEnabled && "cursor-not-allowed opacity-60",
-                  serviceDate && !isSameEasternDay(serviceDate, new Date())
+                  serviceDate && !isSameZonedDay(serviceDate, new Date(), scheduleTz)
                     ? "border-[#083b6c] bg-[#e6f9ff]"
                     : "border-border bg-white",
                 )}
@@ -653,11 +800,21 @@ export default function BookingClient() {
                 disabled={!orderingEnabled}
                 className="mt-1 h-12 rounded-xl"
                 min={
-                  isSameDayGearCutoffPassed()
-                    ? easternDateKey(new Date(Date.now() + 86400000))
-                    : easternDateKey(new Date())
+                  sameDayBlocked
+                    ? (() => {
+                        const n = new Date(
+                          todayInMarket.getFullYear(),
+                          todayInMarket.getMonth(),
+                          todayInMarket.getDate() + 1,
+                        );
+                        const yyyy = n.getFullYear();
+                        const mm = String(n.getMonth() + 1).padStart(2, "0");
+                        const dd = String(n.getDate()).padStart(2, "0");
+                        return `${yyyy}-${mm}-${dd}`;
+                      })()
+                    : zonedDateKey(todayInMarket, scheduleTz)
                 }
-                value={serviceDate ? easternDateKey(serviceDate) : ""}
+                value={serviceDate ? zonedDateKey(serviceDate, scheduleTz) : ""}
                 onChange={(e) => {
                   if (!orderingEnabled || !e.target.value) return;
                   const [y, m, d] = e.target.value.split("-").map(Number);
@@ -668,11 +825,11 @@ export default function BookingClient() {
           </div>
         ) : null}
 
-        {step === 2 ? (
+        {step === 3 ? (
           <div className="space-y-5">
             <h2 className="text-2xl font-semibold text-[#083b6c]">Duration & setup time</h2>
             <p className="text-sm text-muted-foreground">
-              {serviceDate ? format(serviceDate, "EEEE, MMM d") : ""} · rentals end by 7:00 PM Eastern
+              {serviceDate ? format(serviceDate, "EEEE, MMM d") : ""} · rentals end by 7:00 PM {clockZone}
             </p>
             <p className="text-xs text-muted-foreground">{durationPriceNote} · + ${DELIVERY_FEE.toFixed(2)} delivery at checkout</p>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -682,7 +839,7 @@ export default function BookingClient() {
                 if (blocked) return null;
                 const endLabel =
                   serviceDate && startTime
-                    ? formatBookingEndTime(serviceDate, startTime, opt.hours)
+                    ? formatBookingEndTime(serviceDate, startTime, opt.hours, scheduleTz)
                     : "";
                 const price = setupPreviewForHours(opt.hours);
                 const selected = durationHours === opt.hours;
@@ -711,7 +868,7 @@ export default function BookingClient() {
             {pickupFullBlocked || pickupShoreBlocked ? (
               <p className="text-xs text-muted-foreground leading-snug">
                 With this start time, anything past{" "}
-                <span className="font-medium text-foreground">7:00 PM Eastern</span> isn&apos;t offered — pick Half
+                <span className="font-medium text-foreground">7:00 PM {clockZone}</span> isn&apos;t offered — pick Half
                 Day or an earlier start if you need a longer rental.
               </p>
             ) : null}
@@ -721,7 +878,7 @@ export default function BookingClient() {
                 <div className="rounded-2xl border border-border bg-muted/40 px-4 py-5 text-center">
                   <p className="text-sm font-medium text-foreground">No setup times left today</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Same-day ordering closes at 4:00 PM Eastern. Choose another date or come back earlier tomorrow.
+                    Same-day ordering closes at 4:00 PM {clockZone}. Choose another date or come back earlier tomorrow.
                   </p>
                 </div>
               ) : (
@@ -758,7 +915,7 @@ export default function BookingClient() {
                 </div>
               )}
               <p className="mt-3 text-xs text-muted-foreground leading-snug">
-                All start times are Eastern (hourly 8:00 AM – 4:00 PM). Afternoon starts from 11:00 AM use premium
+                All start times are {clockZone} (hourly 8:00 AM – 4:00 PM). Afternoon starts from 11:00 AM use premium
                 package tiers. Half day is 3 hours; Full day is 6 hours; Shore Day is 8 hours.
               </p>
             </div>
@@ -777,7 +934,7 @@ export default function BookingClient() {
           </div>
         ) : null}
 
-        {step === 1 ? (
+        {step === 2 ? (
           <div className="space-y-5">
             <div className="flex items-end justify-between gap-3">
               <h2 className="text-2xl font-semibold text-[#083b6c]">Choose your setup</h2>
@@ -843,7 +1000,7 @@ export default function BookingClient() {
               <div className="space-y-3">
                 {PACKAGES.map((p) => {
                   const price = quotedPackagePrice(p.id, startTime, durationHours);
-                  const soldOut = poolReady && !canSellPackage(p.id, serverPool);
+                  const soldOut = poolReady && !canSellPackage(p.id, serverPool, marketId);
                   return (
                     <button
                       key={p.id}
@@ -882,7 +1039,7 @@ export default function BookingClient() {
                   const soldOut = poolReady && left <= 0;
                   const plusBlocked =
                     !poolReady ||
-                    !canSellCustomQty({ ...customQty, [g.id]: qty + 1 }, serverPool);
+                    !canSellCustomQty({ ...customQty, [g.id]: qty + 1 }, serverPool, marketId);
                   return (
                     <div
                       key={g.id}
@@ -920,7 +1077,7 @@ export default function BookingClient() {
                           onClick={() =>
                             setCustomQty((q) => {
                               const next = { ...q, [g.id]: (q[g.id] ?? 0) + 1 };
-                              if (!canSellCustomQty(next, serverPool)) return q;
+                              if (!canSellCustomQty(next, serverPool, marketId)) return q;
                               return next;
                             })
                           }
@@ -936,21 +1093,21 @@ export default function BookingClient() {
           </div>
         ) : null}
 
-        {step === 3 ? (
+        {step === 4 ? (
           <div className="space-y-5">
             <h2 className="text-2xl font-semibold text-[#083b6c]">Delivery location</h2>
             <p className="text-sm text-muted-foreground">
-              We deliver to Virginia Beach streets {SERVICE_AREA_LABEL_LOCAL}.
+              We deliver to {MARKETS[marketId].serviceAreaLabel} in {MARKETS[marketId].name}.
             </p>
             <div className="max-h-[55vh] space-y-2 overflow-y-auto">
-              {BEACH_LOCATION_OPTIONS.map((opt) => (
+              {checkoutSpots.map((opt) => (
                 <button
-                  key={opt.streetName}
+                  key={opt.id}
                   type="button"
-                  onClick={() => setStreetName(opt.streetName)}
+                  onClick={() => setStreetName(opt.id)}
                   className={cn(
                     "flex w-full rounded-2xl border-2 px-4 py-3 text-left text-sm font-semibold",
-                    streetName === opt.streetName
+                    streetName === opt.id
                       ? "border-[#083b6c] bg-[#e6f9ff] text-[#083b6c]"
                       : "border-border bg-white",
                   )}
@@ -962,7 +1119,7 @@ export default function BookingClient() {
           </div>
         ) : null}
 
-        {step === 4 ? (
+        {step === 5 ? (
           <div className="space-y-5">
             <h2 className="text-2xl font-semibold text-[#083b6c]">Review & pay</h2>
             <div className="space-y-2 rounded-2xl border border-border bg-white p-4 text-sm">
@@ -993,7 +1150,7 @@ export default function BookingClient() {
                 {serviceDate ? format(serviceDate, "EEE, MMM d") : ""} · {startTime} – {endTime}
               </p>
               <p className="text-muted-foreground">{location?.displayName}</p>
-              {foodLines.length > 0 ? (
+              {includeFood ? (
                 <div className="border-t pt-2">
                   <p className="font-semibold text-[#083b6c]">
                     {foodRestaurant?.name ?? "Food"} · ${foodSubtotal.toFixed(2)}
@@ -1109,7 +1266,7 @@ export default function BookingClient() {
                 <span>Gear</span>
                 <span>${gearMerchandise.toFixed(2)}</span>
               </div>
-              {foodSubtotal > 0 ? (
+              {includeFood && foodSubtotal > 0 ? (
                 <div className="flex justify-between">
                   <span>Food</span>
                   <span>${foodSubtotal.toFixed(2)}</span>
@@ -1154,7 +1311,7 @@ export default function BookingClient() {
                 registerConfirm={registerConfirm}
               />
             </div>
-            <p className="text-xs text-muted-foreground">Free cancel before 8:00 AM Eastern on your service day.</p>
+            <p className="text-xs text-muted-foreground">Free cancel before 8:00 AM {clockZone} on your service day.</p>
           </div>
         ) : null}
 
@@ -1171,7 +1328,7 @@ export default function BookingClient() {
               disabled={!canContinue()}
               onClick={() => setStep((s) => s + 1)}
             >
-              {step === 1 && poolReady && !selectionAvailable ? "Sold out for this date" : "Continue"}
+              {step === 2 && poolReady && !selectionAvailable ? "Sold out for this date" : "Continue"}
             </Button>
           ) : (
             <Button
@@ -1194,5 +1351,3 @@ export default function BookingClient() {
     </div>
   );
 }
-
-const SERVICE_AREA_LABEL_LOCAL = "42nd–86th";

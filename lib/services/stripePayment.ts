@@ -34,9 +34,16 @@ export async function validateStripePromoCode(promoCode: string): Promise<Stripe
   return payload.promo;
 }
 
+export type CreatePaymentIntentOptions = {
+  marketId?: string;
+  serviceDate?: string;
+  idempotencyKey?: string;
+};
+
 export async function createPaymentIntentClientSecret(
   amountCents: number,
   promoCode?: string,
+  options?: CreatePaymentIntentOptions,
 ): Promise<string> {
   if (!isSupabaseConfigured()) {
     throw new Error("Cloud checkout requires Supabase to be configured.");
@@ -48,7 +55,13 @@ export async function createPaymentIntentClientSecret(
   const res = await fetch(getFunctionUrl("create-payment-intent"), {
     method: "POST",
     headers: getFunctionHeaders(),
-    body: JSON.stringify({ amountCents, ...(promoCode ? { promoCode } : {}) }),
+    body: JSON.stringify({
+      amountCents,
+      ...(promoCode ? { promoCode } : {}),
+      ...(options?.marketId ? { marketId: options.marketId } : {}),
+      ...(options?.serviceDate ? { serviceDate: options.serviceDate } : {}),
+      ...(options?.idempotencyKey ? { idempotencyKey: options.idempotencyKey } : {}),
+    }),
   });
 
   const raw = await res.text();
@@ -63,6 +76,21 @@ export async function createPaymentIntentClientSecret(
     throw new Error(payload.error || `Could not start payment (HTTP ${res.status}).`);
   }
   return payload.clientSecret;
+}
+
+export async function refundPaymentIntent(paymentIntentId: string): Promise<boolean> {
+  const id = paymentIntentId.trim();
+  if (!id.startsWith("pi_")) return false;
+  try {
+    const res = await fetch(getFunctionUrl("create-payment-intent"), {
+      method: "POST",
+      headers: getFunctionHeaders(),
+      body: JSON.stringify({ refundPaymentIntentId: id }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export async function createOrderExtensionPaymentIntent(
