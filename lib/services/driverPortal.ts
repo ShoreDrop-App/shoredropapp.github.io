@@ -11,6 +11,7 @@ export type DriverOrderRow = {
   customer_phone?: string | null;
   location_display_name: string;
   location_full_address: string;
+  market_id?: string | null;
   service_date: string;
   start_time: string;
   end_time: string;
@@ -77,9 +78,13 @@ const callDriverPortal = async <T>(
   return payload as T;
 };
 
-export const driverListOrders = async (supabase: SupabaseClient): Promise<DriverListResponse> => {
+export const driverListOrders = async (
+  supabase: SupabaseClient,
+  marketId?: string,
+): Promise<DriverListResponse> => {
   const data = await callDriverPortal<DriverListResponse>(supabase, "driver-portal(list)", {
     action: "list",
+    ...(marketId ? { marketId } : {}),
   });
   if (!Array.isArray(data.orders)) throw new Error("driver-portal(list): malformed response.");
   return { orders: data.orders, itemsByOrder: data.itemsByOrder ?? {} };
@@ -88,11 +93,16 @@ export const driverListOrders = async (supabase: SupabaseClient): Promise<Driver
 export const driverGetGearHolds = async (
   supabase: SupabaseClient,
   serviceDate: string,
+  marketId?: string,
 ): Promise<Record<InventoryBucket, number>> => {
   const data = await callDriverPortal<{ held?: Record<string, number> }>(
     supabase,
     "driver-portal(gear-holds)",
-    { action: "getGearHolds", serviceDate },
+    {
+      action: "getGearHolds",
+      serviceDate,
+      ...(marketId ? { marketId } : {}),
+    },
   );
   const held: Record<InventoryBucket, number> = {
     chairs: 0,

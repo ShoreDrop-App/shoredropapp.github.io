@@ -8,13 +8,14 @@ import { Button } from "../button";
 import { Input } from "../input";
 import { Label } from "../label";
 import { cn } from "../../lib/utils";
-import { easternDateKey } from "../../lib/ordering/time";
+import { easternDateKey, zonedDateKey } from "../../lib/ordering/time";
 import {
   INVENTORY_BUCKET_LABEL,
-  INVENTORY_MAX,
+  inventoryMaxFor,
   type InventoryBucket,
 } from "../../lib/ordering/inventory";
 import { expandOrderItem } from "../../lib/ordering/orderItemLines";
+import { MARKETS, type MarketId } from "../../lib/ordering/markets";
 import { fetchOutstandingGearPoolCounts } from "../../lib/services/outstandingGearPool";
 import {
   driverGetGearHolds,
@@ -29,9 +30,10 @@ import {
 } from "../../lib/services/staffSupabase";
 
 const REFRESH_MS = 20_000;
+const ADMIN_MARKET_KEY = "shoredrop_admin_market_v1";
 
 const DONE_STATUSES = new Set(["completed", "picked-up"]);
-const BUCKETS = Object.keys(INVENTORY_MAX) as InventoryBucket[];
+const BUCKETS = Object.keys(MARKETS.vb.inventory) as InventoryBucket[];
 
 const EMPTY_HOLDS: Record<InventoryBucket, number> = {
   chairs: 0,
@@ -40,6 +42,28 @@ const EMPTY_HOLDS: Record<InventoryBucket, number> = {
   largeCoolers: 0,
   beachTents: 0,
 };
+
+function readAdminMarket(): MarketId {
+  if (typeof window === "undefined") return "vb";
+  try {
+    const raw = window.localStorage.getItem(ADMIN_MARKET_KEY);
+    return raw === "pcb" ? "pcb" : "vb";
+  } catch {
+    return "vb";
+  }
+}
+
+function persistAdminMarket(id: MarketId) {
+  try {
+    window.localStorage.setItem(ADMIN_MARKET_KEY, id);
+  } catch {
+    /* ignore */
+  }
+}
+
+function marketOfOrder(o: DriverOrderRow): MarketId {
+  return o.market_id === "pcb" ? "pcb" : "vb";
+}
 
 function statusTone(status: string): string {
   const s = status.trim().toLowerCase();
@@ -69,6 +93,7 @@ export default function AdminClient() {
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState("");
 
+  const [marketId, setMarketId] = useState<MarketId>("vb");
   const [serviceDate, setServiceDate] = useState(() => easternDateKey(new Date()));
   const [orders, setOrders] = useState<DriverOrderRow[]>([]);
   const [itemsByOrder, setItemsByOrder] = useState<Record<string, DriverItemRow[]>>({});
@@ -78,6 +103,16 @@ export default function AdminClient() {
   const [loadError, setLoadError] = useState("");
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [dateOnly, setDateOnly] = useState(true);
+
+  const market = MARKETS[marketId];
+  const inventoryMax = inventoryMaxFor(marketId);
+  const marketTodayKey = zonedDateKey(new Date(), market.timezone);
+
+  useEffect(() => {
+    const initial = readAdminMarket();
+    setMarketId(initial);
+    setServiceDate(zonedDateKey(new Date(), MARKETS[initial].timezone));
+  }, []);
 
   useEffect(() => {
     setSupabase(getStaffSupabase());
@@ -119,9 +154,9 @@ export default function AdminClient() {
       if (!opts?.silent) setLoading(true);
       try {
         const [list, pool, held] = await Promise.all([
-          driverListOrders(supabase),
-          fetchOutstandingGearPoolCounts(serviceDate),
-          driverGetGearHolds(supabase, serviceDate).catch(() => EMPTY_HOLDS),
+          driverListOrders(supabase, marketId),
+          fetchOutstandingGearPoolCounts(serviceDate, marketId),
+          driverGetGearHolds(supabase, serviceDate, marketId).catch(() => EMPTY_HOLDS),
         ]);
         setOrders(list.orders);
         setItemsByOrder(list.itemsByOrder);
@@ -135,7 +170,7 @@ export default function AdminClient() {
         if (!opts?.silent) setLoading(false);
       }
     },
-    [supabase, session, serviceDate],
+    [supabase, session, serviceDate, marketId],
   );
 
   useEffect(() => {
@@ -167,13 +202,25 @@ export default function AdminClient() {
   };
 
   const visibleOrders = useMemo(() => {
-    const scoped = dateOnly ? orders.filter((o) => o.service_date === serviceDate) : orders;
+    const marketScoped = orders.filter((o) => marketOfOrder(o) === marketId);
+    const scoped = dateOnly ? marketScoped.filter((o) => o.service_date === serviceDate) : marketScoped;
     return [...scoped].sort((a, b) => {
       const d = (a.service_date || "").localeCompare(b.service_date || "");
       if (d !== 0) return d;
       return (a.start_time || "").localeCompare(b.start_time || "");
     });
-  }, [orders, dateOnly, serviceDate]);
+  }, [orders, dateOnly, serviceDate, marketId]);
+
+  const selectMarket = (id: MarketId) => {
+    if (id === marketId) return;
+    persistAdminMarket(id);
+    setMarketId(id);
+    setOrders([]);
+    setItemsByOrder({});
+    setPoolTotal(null);
+    setHolds(EMPTY_HOLDS);
+    setServiceDate(zonedDateKey(new Date(), MARKETS[id].timezone));
+  };
 
   const grouped = useMemo(() => {
     const live: DriverOrderRow[] = [];
@@ -257,7 +304,7 @@ export default function AdminClient() {
             <h1 className="truncate text-lg font-semibold text-[#083b6c]">ShoreDrop admin</h1>
             <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <Eye className="h-3 w-3" />
-              Read only
+              Read only · {market.shortName}
               {updatedAt ? ` · updated ${format(updatedAt, "h:mm:ss a")}` : ""}
             </p>
           </div>
@@ -285,6 +332,23 @@ export default function AdminClient() {
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
+        <div className="mx-auto flex max-w-3xl gap-2 px-4 pb-3">
+          {(["vb", "pcb"] as MarketId[]).map((id) => (
+            <Button
+              key={id}
+              type="button"
+              size="sm"
+              variant={marketId === id ? "default" : "outline"}
+              className={cn(
+                "flex-1 rounded-full",
+                marketId === id && "bg-[#083b6c] hover:bg-[#0a4a85]",
+              )}
+              onClick={() => selectMarket(id)}
+            >
+              {MARKETS[id].shortName}
+            </Button>
+          ))}
+        </div>
       </header>
 
       <main className="mx-auto max-w-3xl space-y-4 px-4 py-5">
@@ -300,9 +364,9 @@ export default function AdminClient() {
               <Layers className="h-5 w-5 text-[#083b6c]" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-sm font-bold text-foreground">Gear pool</h2>
+              <h2 className="text-sm font-bold text-foreground">Gear pool · {market.name}</h2>
               <p className="text-[11px] leading-snug text-muted-foreground">
-                Online orders plus staff walk-up holds for the selected day.
+                Online orders plus staff walk-up holds for this market and day ({market.clockZoneLabel} time).
               </p>
             </div>
           </div>
@@ -325,7 +389,7 @@ export default function AdminClient() {
             />
             <p className="mt-1.5 text-[11px] text-muted-foreground">
               Showing {dayLabel(serviceDate)}
-              {serviceDate === easternDateKey(new Date()) ? " (today)" : ""}
+              {serviceDate === marketTodayKey ? " (today)" : ""}
             </p>
           </div>
 
@@ -336,7 +400,7 @@ export default function AdminClient() {
           ) : (
             <ul className="space-y-3">
               {BUCKETS.map((key) => {
-                const max = INVENTORY_MAX[key];
+                const max = inventoryMax[key];
                 const total = poolTotal[key] ?? 0;
                 const held = holds[key] ?? 0;
                 const onlineOut = Math.max(0, total - held);
@@ -385,7 +449,7 @@ export default function AdminClient() {
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-bold text-foreground">
-              Orders · {grouped.live.length} live · {grouped.done.length} done ·{" "}
+              {market.shortName} orders · {grouped.live.length} live · {grouped.done.length} done ·{" "}
               {grouped.cancelled.length} cancelled
             </h2>
             <div className="flex gap-1.5">
@@ -412,7 +476,7 @@ export default function AdminClient() {
 
           {visibleOrders.length === 0 ? (
             <div className="rounded-3xl border border-border bg-white p-6 text-center text-sm text-muted-foreground shadow-soft">
-              {loading ? "Loading orders…" : "No orders to show."}
+              {loading ? `Loading ${market.shortName} orders…` : `No ${market.shortName} orders to show.`}
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -441,7 +505,7 @@ export default function AdminClient() {
                     </div>
 
                     <p className="mt-2 text-xs text-muted-foreground">
-                      {o.location_display_name}
+                      {MARKETS[marketOfOrder(o)].shortName} · {o.location_display_name}
                     </p>
 
                     {lines.length > 0 ? (
