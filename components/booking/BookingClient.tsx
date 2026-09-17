@@ -55,6 +55,7 @@ import {
   type InventoryBucket,
 } from "../../lib/ordering/inventory";
 import StripeCardForm from "../checkout/StripeCardForm";
+import AuthRequiredGate from "../auth/AuthRequiredGate";
 import { useCustomerAuth } from "../../contexts/CustomerAuthContext";
 import { useAuthModal } from "../../contexts/AuthModalContext";
 import { CONTACT_PHONE_REQUIRED_MESSAGE, isValidContactPhone } from "../../lib/ordering/phone";
@@ -377,7 +378,6 @@ export default function BookingClient() {
     }
     if (authRequiredMode && !authUser) {
       openAuthModal({ title: "Sign in to place your order" });
-      toast.message("Sign in or create an account to finish checkout. Same login works in the ShoreDrop app.");
       return;
     }
     if (!name.trim()) {
@@ -587,6 +587,14 @@ export default function BookingClient() {
       setSubmitting(false);
     }
   };
+
+  if (authInitialized && authRequiredMode && !authUser) {
+    return (
+      <div className="min-h-screen bg-[hsl(200,20%,98%)] pt-8">
+        <AuthRequiredGate title="Sign in to book" />
+      </div>
+    );
+  }
 
   if (confirmedId) {
     return (

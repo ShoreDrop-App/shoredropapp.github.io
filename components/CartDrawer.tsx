@@ -15,6 +15,8 @@ import {
 import { Button } from "./button";
 import { Separator } from "./separator";
 import { useFoodBag } from "../contexts/FoodBagContext";
+import { useCustomerAuth } from "../contexts/CustomerAuthContext";
+import { useAuthModal } from "../contexts/AuthModalContext";
 import { cn } from "../lib/utils";
 
 type CartDrawerProps = {
@@ -23,12 +25,23 @@ type CartDrawerProps = {
 
 export default function CartDrawer({ triggerClassName }: CartDrawerProps) {
   const { lines, setQty, subtotal, bagCount } = useFoodBag();
+  const { user, authRequiredMode } = useCustomerAuth();
+  const { openAuthModal } = useAuthModal();
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
   const go = (href: string) => {
     setOpen(false);
     router.push(href);
+  };
+
+  const requireAuthThenGo = (href: string, title: string) => {
+    if (authRequiredMode && !user) {
+      setOpen(false);
+      openAuthModal({ title });
+      return;
+    }
+    go(href);
   };
 
   return (
@@ -144,7 +157,7 @@ export default function CartDrawer({ triggerClassName }: CartDrawerProps) {
                 <Separator />
                 <Button
                   className="w-full rounded-full bg-[#083b6c] hover:bg-[#0a4a85]"
-                  onClick={() => go("/food/checkout")}
+                  onClick={() => requireAuthThenGo("/food/checkout", "Sign in to order food")}
                 >
                   Checkout food
                 </Button>
@@ -157,13 +170,13 @@ export default function CartDrawer({ triggerClassName }: CartDrawerProps) {
                 </Button>
                 <p className="text-center text-xs text-muted-foreground">
                   Packages + food can checkout together in booking.{" "}
-                  <Link
-                    href="/booking"
+                  <button
+                    type="button"
                     className="font-semibold text-[#3b82b6] underline-offset-2 hover:underline"
-                    onClick={() => setOpen(false)}
+                    onClick={() => requireAuthThenGo("/booking", "Sign in to book")}
                   >
                     Continue to booking
-                  </Link>
+                  </button>
                 </p>
               </div>
             </>

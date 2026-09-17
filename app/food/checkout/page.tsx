@@ -30,6 +30,7 @@ import {
 } from "../../../lib/ordering/time";
 import { useFoodBag } from "../../../contexts/FoodBagContext";
 import StripeCardForm from "../../../components/checkout/StripeCardForm";
+import AuthRequiredGate from "../../../components/auth/AuthRequiredGate";
 import { useCustomerAuth } from "../../../contexts/CustomerAuthContext";
 import { useAuthModal } from "../../../contexts/AuthModalContext";
 import {
@@ -59,7 +60,7 @@ import { X } from "lucide-react";
 
 export default function FoodCheckoutPage() {
   const router = useRouter();
-  const { user: authUser, authRequiredMode } = useCustomerAuth();
+  const { user: authUser, initialized: authInitialized, authRequiredMode } = useCustomerAuth();
   const { openAuthModal } = useAuthModal();
   const { lines, setQty, clear, subtotal } = useFoodBag();
   const restaurant = getFoodRestaurant(lines[0]?.restaurantId ?? "watermans");
@@ -188,10 +189,24 @@ export default function FoodCheckoutPage() {
     );
   }
 
+  if (authInitialized && authRequiredMode && !authUser) {
+    return (
+      <div className="min-h-screen bg-[hsl(200,20%,98%)]">
+        <SiteNav />
+        <div className="pt-28">
+          <AuthRequiredGate
+            title="Sign in to order food"
+            backHref="/food"
+            backLabel="← Back to food"
+          />
+        </div>
+      </div>
+    );
+  }
+
   const placeOrder = async () => {
     if (authRequiredMode && !authUser) {
       openAuthModal({ title: "Sign in to order food" });
-      toast.message("Sign in or create an account to finish checkout. Same login works in the ShoreDrop app.");
       return;
     }
     if (!orderingEnabled) {
