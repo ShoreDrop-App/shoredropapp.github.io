@@ -9,7 +9,6 @@ import SiteFooter from "../SiteFooter";
 import { Button } from "../button";
 import { Input } from "../input";
 import { cn } from "../../lib/utils";
-import CustomerAuthPanel from "../auth/CustomerAuthPanel";
 import { useCustomerAuth } from "../../contexts/CustomerAuthContext";
 import { useAuthModal } from "../../contexts/AuthModalContext";
 import { getSupabaseBrowser } from "../../lib/services/supabaseBrowser";
