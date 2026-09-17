@@ -116,14 +116,14 @@ export default function KioskPage() {
               </a>
             </div>
             <p className="mt-8 text-sm text-muted-foreground">
-              Installed in oceanfront properties along the Gulf and Atlantic coasts.
+              Built for oceanfront properties along the Gulf and Atlantic coasts.
             </p>
           </div>
           <div className="group relative flex justify-center [perspective:1400px]">
             <div className="absolute bottom-10 h-56 w-56 rounded-full bg-[#bbefff]/60 blur-3xl" />
             <img
               src="/assets/kiosk/kiosk-hero.png"
-              alt="iPad kiosk on a floor stand showing the ShoreDrop home screen welcoming Embassy Suites PCB guests with an Order Your Setup button"
+              alt='iPad kiosk on a floor stand showing the ShoreDrop home screen welcoming "Your Hotel Here" PCB guests with an Order Your Setup button'
               width={1200}
               height={1408}
               className="relative w-full max-w-[420px] drop-shadow-[0_50px_60px_rgba(13,43,78,0.28)] transition-transform duration-700 ease-out will-change-transform [transform:rotateY(-9deg)_rotateX(2deg)] group-hover:[transform:rotateY(-2deg)_rotateX(0deg)_translateY(-10px)]"
@@ -192,7 +192,7 @@ export default function KioskPage() {
             <figure className="rounded-[2rem] border border-[#083b6c]/10 bg-white p-6 shadow-[0_2px_10px_rgba(8,59,108,0.06)]">
               <img
                 src="/assets/kiosk/kiosk-whitelabel.png"
-                alt="Kiosk home screen co-branded for Embassy Suites PCB with a welcome hero, delivery location and a resort-guest discount"
+                alt='Kiosk home screen co-branded for a sample property with a welcome hero, delivery location and a resort-guest discount'
                 loading="lazy"
                 width={1044}
                 height={1870}

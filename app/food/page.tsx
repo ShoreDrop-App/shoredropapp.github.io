@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import SiteNav from "../../components/SiteNav";
 import SiteFooter from "../../components/SiteFooter";
+import FoodOrderingGateBanner from "../../components/food/FoodOrderingGateBanner";
 import { FOOD_RESTAURANTS, FOOD_SCHEDULE_LABEL } from "../../lib/ordering/catalog";
 
 export const metadata: Metadata = {
@@ -23,6 +24,9 @@ export default function FoodPage() {
         <p className="mt-2 text-muted-foreground">
           Ordering open {FOOD_SCHEDULE_LABEL}. Virginia Beach only for now — Panama City Beach food is coming soon.
         </p>
+        <div className="mt-4">
+          <FoodOrderingGateBanner />
+        </div>
         <p className="mt-3 text-sm text-[#083b6c]/80">
           Add food to your bag, then add{" "}
           <Link href="/#services" className="font-semibold underline underline-offset-2">

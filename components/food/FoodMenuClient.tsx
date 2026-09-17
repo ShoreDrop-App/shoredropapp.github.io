@@ -1,17 +1,31 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "../button";
 import SiteNav from "../SiteNav";
+import FoodOrderingGateBanner from "./FoodOrderingGateBanner";
 import { getFoodRestaurant } from "../../lib/ordering/catalog";
 import { useFoodBag } from "../../contexts/FoodBagContext";
+import { fetchFoodOrderingStatus } from "../../lib/services/foodOrderingEnabled";
 import { toast } from "sonner";
 
 export default function FoodMenuClient({ restaurantId }: { restaurantId: string }) {
   const restaurant = getFoodRestaurant(restaurantId);
   const { lines, addLine } = useFoodBag();
   const [cheeseByItem, setCheeseByItem] = useState<Record<string, string>>({});
+  const [foodOrderingEnabled, setFoodOrderingEnabled] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchFoodOrderingStatus().then((status) => {
+      if (cancelled || !status.known) return;
+      setFoodOrderingEnabled(status.enabled);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const bagCount = useMemo(() => lines.reduce((n, l) => n + l.quantity, 0), [lines]);
   const bagForRestaurant = useMemo(
@@ -60,6 +74,10 @@ export default function FoodMenuClient({ restaurantId }: { restaurantId: string 
           </div>
         </div>
 
+        <div className="mt-4">
+          <FoodOrderingGateBanner />
+        </div>
+
         <div className="mt-8 space-y-8">
           {sections.map((section) => (
             <section key={section}>
@@ -104,7 +122,12 @@ export default function FoodMenuClient({ restaurantId }: { restaurantId: string 
                           <Button
                             size="sm"
                             className="mt-2 rounded-full bg-[#083b6c]"
+                            disabled={!foodOrderingEnabled}
                             onClick={() => {
+                              if (!foodOrderingEnabled) {
+                                toast.error("Food ordering is paused right now.");
+                                return;
+                              }
                               if (cheeseOpt && !cheese) {
                                 toast.error("Pick a cheese.");
                                 return;

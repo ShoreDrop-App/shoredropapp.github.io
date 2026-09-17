@@ -53,6 +53,7 @@ import {
 } from "../../../lib/ordering/pendingCheckoutPayment";
 import { assertOrderingOpen, fetchOrderingStatus } from "../../../lib/services/orderingEnabled";
 import { assertCheckoutAllowed, fetchSameDayOrdersEnabled } from "../../../lib/services/sameDayOrdering";
+import { assertFoodOrderingOpen, fetchFoodOrderingStatus } from "../../../lib/services/foodOrderingEnabled";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
@@ -80,6 +81,7 @@ export default function FoodCheckoutPage() {
   const [promoError, setPromoError] = useState("");
   const [orderingEnabled, setOrderingEnabled] = useState(true);
   const [sameDayEnabled, setSameDayEnabled] = useState(true);
+  const [foodOrderingEnabled, setFoodOrderingEnabled] = useState(true);
   const confirmRef = useRef<((clientSecret: string) => Promise<string | undefined>) | null>(null);
 
   const serviceDate = useMemo(() => startOfDay(new Date()), []);
@@ -93,6 +95,10 @@ export default function FoodCheckoutPage() {
     });
     void fetchSameDayOrdersEnabled("vb").then((enabled) => {
       if (!cancelled) setSameDayEnabled(enabled);
+    });
+    void fetchFoodOrderingStatus().then((status) => {
+      if (cancelled || !status.known) return;
+      setFoodOrderingEnabled(status.enabled);
     });
     return () => {
       cancelled = true;
@@ -204,10 +210,20 @@ export default function FoodCheckoutPage() {
       toast.error("Ordering is paused right now.");
       return;
     }
+    if (!foodOrderingEnabled) {
+      toast.error("Food ordering is paused right now.");
+      return;
+    }
     try {
       await assertOrderingOpen();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ordering is paused right now.");
+      return;
+    }
+    try {
+      await assertFoodOrderingOpen();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Food ordering is paused right now.");
       return;
     }
     if (!windowOpen) {
@@ -277,6 +293,7 @@ export default function FoodCheckoutPage() {
             marketId: "vb",
             serviceDate: serviceDateKey,
             idempotencyKey: checkoutIdempotencyKey(fingerprint),
+            includesFood: true,
           },
         );
         paymentIntentId = (await confirmRef.current(clientSecret)) ?? "";
@@ -384,6 +401,10 @@ export default function FoodCheckoutPage() {
           {!orderingEnabled ? (
             <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
               Ordering is paused right now. Food checkout is closed until staff turn it back on.
+            </p>
+          ) : !foodOrderingEnabled ? (
+            <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
+              Food ordering is paused right now. Gear bookings may still be open.
             </p>
           ) : !sameDayEnabled ? (
             <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm">
@@ -611,6 +632,7 @@ export default function FoodCheckoutPage() {
             disabled={
               submitting ||
               !orderingEnabled ||
+              !foodOrderingEnabled ||
               !sameDayEnabled ||
               !windowOpen ||
               !name.trim() ||

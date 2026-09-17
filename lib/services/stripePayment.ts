@@ -38,6 +38,8 @@ export type CreatePaymentIntentOptions = {
   marketId?: string;
   serviceDate?: string;
   idempotencyKey?: string;
+  /** When true, Edge Function refuses the charge if staff paused food. */
+  includesFood?: boolean;
 };
 
 export async function createPaymentIntentClientSecret(
@@ -61,6 +63,7 @@ export async function createPaymentIntentClientSecret(
       ...(options?.marketId ? { marketId: options.marketId } : {}),
       ...(options?.serviceDate ? { serviceDate: options.serviceDate } : {}),
       ...(options?.idempotencyKey ? { idempotencyKey: options.idempotencyKey } : {}),
+      ...(options?.includesFood ? { includesFood: true } : {}),
     }),
   });
 

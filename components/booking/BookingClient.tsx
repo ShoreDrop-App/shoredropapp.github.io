@@ -70,6 +70,7 @@ import {
 } from "../../lib/ordering/pendingCheckoutPayment";
 import { assertOrderingOpen, fetchOrderingStatus } from "../../lib/services/orderingEnabled";
 import { assertCheckoutAllowed, fetchSameDayOrdersEnabled } from "../../lib/services/sameDayOrdering";
+import { assertFoodOrderingOpen } from "../../lib/services/foodOrderingEnabled";
 import { toast } from "sonner";
 
 const STEPS = ["City", "Date", "Package", "Duration", "Location", "Pay"] as const;
@@ -365,6 +366,14 @@ export default function BookingClient() {
       toast.error(e instanceof Error ? e.message : "Ordering is paused right now.");
       return;
     }
+    if (includeFood) {
+      try {
+        await assertFoodOrderingOpen();
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Food ordering is paused right now.");
+        return;
+      }
+    }
     if (authRequiredMode && !authUser) {
       toast.error("Sign in to place your order.");
       return;
@@ -458,6 +467,7 @@ export default function BookingClient() {
             marketId,
             serviceDate: serviceDateKey,
             idempotencyKey: checkoutIdempotencyKey(fingerprint),
+            ...(includeFood ? { includesFood: true } : {}),
           },
         );
         paymentIntentId = (await confirmRef.current(clientSecret)) ?? "";
