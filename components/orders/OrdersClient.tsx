@@ -22,6 +22,7 @@ import {
   type TrackerMessage,
 } from "../../lib/services/orderTracker";
 import {
+  clearSavedWebOrders,
   crewLabel,
   getStatusSteps,
   isPastStatus,
@@ -121,7 +122,15 @@ export default function OrdersClient() {
   }, [focusId, loading, orders.length]);
 
   const refreshList = useCallback(async () => {
-    const local = readSavedWebOrders();
+    // When accounts are required, never show another user's browser-cached orders while logged out.
+    if (authRequiredMode && !user) {
+      clearSavedWebOrders();
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
+
+    const local = authRequiredMode ? [] : readSavedWebOrders();
     let cloud: CloudOrderSummary[] = [];
     if (user) {
       const supabase = getSupabaseBrowser();
@@ -145,9 +154,9 @@ export default function OrdersClient() {
         }
       }
     }
-    setOrders(mergeOrders(local, cloud));
+    setOrders(mergeOrders(user ? readSavedWebOrders() : local, cloud));
     setLoading(false);
-  }, [user]);
+  }, [user, authRequiredMode]);
 
   useEffect(() => {
     if (!initialized) return;

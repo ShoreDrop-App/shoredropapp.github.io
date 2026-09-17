@@ -12,6 +12,7 @@ import {
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "../lib/services/supabaseBrowser";
 import { isSupabaseConfigured } from "../lib/services/supabase";
+import { clearSavedWebOrders } from "../lib/ordering/webOrders";
 
 interface CustomerAuthContextValue {
   user: User | null;
@@ -107,6 +108,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    clearSavedWebOrders();
     const supabase = getSupabaseBrowser();
     if (supabase) await supabase.auth.signOut();
     setUser(null);

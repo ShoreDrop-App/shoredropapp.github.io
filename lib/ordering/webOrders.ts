@@ -68,6 +68,17 @@ export function rememberWebOrder(order: SavedWebOrder): void {
   }
 }
 
+/** Clear browser-cached orders (call on sign-out so another account / guest can't see them). */
+export function clearSavedWebOrders(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function isPastStatus(status: OrderStatus): boolean {
   return status === "completed" || status === "picked-up" || status === "cancelled";
 }
