@@ -8,7 +8,13 @@ import { Label } from "../label";
 import { useCustomerAuth } from "../../contexts/CustomerAuthContext";
 import { toast } from "sonner";
 
-export default function CustomerAuthPanel({ title = "Sign in to continue" }: { title?: string }) {
+export default function CustomerAuthPanel({
+  title = "Sign in to continue",
+  onAuthenticated,
+}: {
+  title?: string;
+  onAuthenticated?: () => void;
+}) {
   const { signIn, signUp } = useCustomerAuth();
   const [mode, setMode] = useState<"signIn" | "signUp">("signIn");
   const [email, setEmail] = useState("");
@@ -25,14 +31,20 @@ export default function CustomerAuthPanel({ title = "Sign in to continue" }: { t
           toast.error(res.error);
           return;
         }
-        toast.success(res.sessionCreated ? "Account created — you're signed in." : "Check your email to confirm, then sign in.");
+        toast.success(
+          res.sessionCreated
+            ? "Account created — you're signed in. Same login works in the ShoreDrop app."
+            : "Check your email to confirm, then sign in.",
+        );
+        if (res.sessionCreated) onAuthenticated?.();
       } else {
         const res = await signIn(email, password);
         if (res.error) {
           toast.error(res.error);
           return;
         }
-        toast.success("Signed in");
+        toast.success("Signed in — your orders sync with the ShoreDrop app.");
+        onAuthenticated?.();
       }
     } finally {
       setBusy(false);
@@ -40,10 +52,10 @@ export default function CustomerAuthPanel({ title = "Sign in to continue" }: { t
   };
 
   return (
-    <div className="mx-auto max-w-md rounded-3xl border border-border bg-white p-6 shadow-soft">
+    <div className="mx-auto w-full max-w-md rounded-3xl border border-border bg-white p-6 shadow-soft">
       <h2 className="text-xl font-bold text-[#083b6c]">{title}</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Use the same ShoreDrop account as the app so your orders show up in both places.
+        Use the same email and password as the ShoreDrop app so your orders show up in both places.
       </p>
 
       <div className="mt-4 flex gap-2">

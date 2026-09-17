@@ -30,8 +30,8 @@ import {
 } from "../../../lib/ordering/time";
 import { useFoodBag } from "../../../contexts/FoodBagContext";
 import StripeCardForm from "../../../components/checkout/StripeCardForm";
-import CustomerAuthPanel from "../../../components/auth/CustomerAuthPanel";
 import { useCustomerAuth } from "../../../contexts/CustomerAuthContext";
+import { useAuthModal } from "../../../contexts/AuthModalContext";
 import {
   createPaymentIntentClientSecret,
   isStripeConfigured,
@@ -59,7 +59,8 @@ import { X } from "lucide-react";
 
 export default function FoodCheckoutPage() {
   const router = useRouter();
-  const { user: authUser, initialized: authInitialized, authRequiredMode } = useCustomerAuth();
+  const { user: authUser, authRequiredMode } = useCustomerAuth();
+  const { openAuthModal } = useAuthModal();
   const { lines, setQty, clear, subtotal } = useFoodBag();
   const restaurant = getFoodRestaurant(lines[0]?.restaurantId ?? "watermans");
   const deliveryFee = restaurant?.deliveryFee ?? 8.99;
@@ -187,23 +188,10 @@ export default function FoodCheckoutPage() {
     );
   }
 
-  if (authInitialized && authRequiredMode && !authUser) {
-    return (
-      <div className="min-h-screen bg-[hsl(200,20%,98%)] px-4 pt-28 pb-16">
-        <SiteNav />
-        <div className="mb-8 text-center">
-          <Link href="/food" className="text-sm font-semibold text-[#3b82b6] hover:underline">
-            ← Back to food
-          </Link>
-        </div>
-        <CustomerAuthPanel title="Sign in to order food" />
-      </div>
-    );
-  }
-
   const placeOrder = async () => {
     if (authRequiredMode && !authUser) {
-      toast.error("Sign in to place your order.");
+      openAuthModal({ title: "Sign in to order food" });
+      toast.message("Sign in or create an account to finish checkout. Same login works in the ShoreDrop app.");
       return;
     }
     if (!orderingEnabled) {

@@ -11,6 +11,7 @@ import { Input } from "../input";
 import { cn } from "../../lib/utils";
 import CustomerAuthPanel from "../auth/CustomerAuthPanel";
 import { useCustomerAuth } from "../../contexts/CustomerAuthContext";
+import { useAuthModal } from "../../contexts/AuthModalContext";
 import { getSupabaseBrowser } from "../../lib/services/supabaseBrowser";
 import {
   fetchCustomerCloudOrders,
@@ -106,6 +107,7 @@ export default function OrdersClient() {
   const search = useSearchParams();
   const focusId = search.get("focus");
   const { user, initialized, authRequiredMode } = useCustomerAuth();
+  const { openAuthModal } = useAuthModal();
   const [orders, setOrders] = useState<DisplayOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [chatOrderId, setChatOrderId] = useState<string | null>(null);
@@ -279,7 +281,18 @@ export default function OrdersClient() {
             Sign in with the same account as the ShoreDrop app to see website and app orders, live tracking, and crew
             chat.
           </p>
-          <CustomerAuthPanel title="Sign in to view orders" />
+          <div className="rounded-3xl border border-border bg-white p-6 text-center shadow-soft">
+            <p className="text-sm text-muted-foreground">
+              Use the same email and password as the iOS app so everything stays in sync.
+            </p>
+            <Button
+              type="button"
+              className="mt-4 w-full rounded-full bg-[#083b6c]"
+              onClick={() => openAuthModal({ title: "Sign in to view orders" })}
+            >
+              Log in / Create account
+            </Button>
+          </div>
         </main>
         <SiteFooter />
       </div>
@@ -298,15 +311,30 @@ export default function OrdersClient() {
             </p>
           </div>
           {!user && authRequiredMode ? (
-            <p className="max-w-xs text-right text-xs text-muted-foreground">
-              Sign in (same app account) on checkout to sync full history. Local orders still track here.
-            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-full"
+              onClick={() => openAuthModal({ title: "Sign in to sync orders" })}
+            >
+              Log in
+            </Button>
           ) : null}
         </div>
 
         {!user && authRequiredMode && orders.length > 0 ? (
-          <div className="mb-8 rounded-3xl border border-border bg-white p-5 shadow-soft">
-            <CustomerAuthPanel title="Sign in to sync all orders" />
+          <div className="mb-8 rounded-3xl border border-border bg-white p-5 text-center shadow-soft">
+            <p className="text-sm text-muted-foreground">
+              Sign in with your ShoreDrop app account to sync full order history.
+            </p>
+            <Button
+              type="button"
+              className="mt-3 rounded-full bg-[#083b6c]"
+              onClick={() => openAuthModal({ title: "Sign in to sync all orders" })}
+            >
+              Log in / Create account
+            </Button>
           </div>
         ) : null}
 

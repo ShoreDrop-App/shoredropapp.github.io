@@ -55,8 +55,8 @@ import {
   type InventoryBucket,
 } from "../../lib/ordering/inventory";
 import StripeCardForm from "../checkout/StripeCardForm";
-import CustomerAuthPanel from "../auth/CustomerAuthPanel";
 import { useCustomerAuth } from "../../contexts/CustomerAuthContext";
+import { useAuthModal } from "../../contexts/AuthModalContext";
 import { CONTACT_PHONE_REQUIRED_MESSAGE, isValidContactPhone } from "../../lib/ordering/phone";
 import { SMS_CONSENT_REQUIRED_MESSAGE } from "../../lib/ordering/smsConsent";
 import SmsConsentCheckbox from "../SmsConsentCheckbox";
@@ -80,6 +80,7 @@ type Mode = "package" | "custom";
 export default function BookingClient() {
   const search = useSearchParams();
   const { user: authUser, initialized: authInitialized, authRequiredMode, signOut } = useCustomerAuth();
+  const { openAuthModal } = useAuthModal();
   const { lines: foodLines, subtotal: foodSubtotal, clear: clearFoodBag } = useFoodBag();
   const [step, setStep] = useState(() => (readStoredMarket() ? 1 : 0));
   const [marketId, setMarketId] = useState<MarketId>(() => readStoredMarket() ?? "vb");
@@ -375,7 +376,8 @@ export default function BookingClient() {
       }
     }
     if (authRequiredMode && !authUser) {
-      toast.error("Sign in to place your order.");
+      openAuthModal({ title: "Sign in to place your order" });
+      toast.message("Sign in or create an account to finish checkout. Same login works in the ShoreDrop app.");
       return;
     }
     if (!name.trim()) {
@@ -586,19 +588,6 @@ export default function BookingClient() {
     }
   };
 
-  if (authInitialized && authRequiredMode && !authUser) {
-    return (
-      <div className="min-h-screen bg-[hsl(200,20%,98%)] px-4 py-16">
-        <div className="mb-8 text-center">
-          <Link href="/" className="text-sm font-semibold text-[#3b82b6] hover:underline">
-            ← Back to home
-          </Link>
-        </div>
-        <CustomerAuthPanel title="Sign in to book" />
-      </div>
-    );
-  }
-
   if (confirmedId) {
     return (
       <div className="min-h-screen bg-[hsl(200,20%,98%)] px-4 py-16">
@@ -670,6 +659,14 @@ export default function BookingClient() {
               className="text-xs font-medium text-muted-foreground hover:text-[#083b6c]"
             >
               Sign out
+            </button>
+          ) : authRequiredMode && authInitialized ? (
+            <button
+              type="button"
+              onClick={() => openAuthModal({ title: "Sign in to book" })}
+              className="rounded-full border border-[#083b6c]/25 px-3 py-1.5 text-xs font-semibold text-[#083b6c] hover:bg-[#e6f9ff]"
+            >
+              Log in
             </button>
           ) : null}
         </div>

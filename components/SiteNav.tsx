@@ -5,8 +5,43 @@ import { FaApple } from "react-icons/fa";
 import { Button } from "./button";
 import CartDrawer from "./CartDrawer";
 import { IOS_APP_STORE_URL } from "../lib/app-links";
+import { useCustomerAuth } from "../contexts/CustomerAuthContext";
+import { useAuthModal } from "../contexts/AuthModalContext";
 
 const SiteNav = () => {
+  const { user, initialized, authRequiredMode, signOut } = useCustomerAuth();
+  const { openAuthModal } = useAuthModal();
+
+  const accountControl =
+    authRequiredMode && initialized ? (
+      user ? (
+        <div className="flex items-center gap-2">
+          <span className="hidden max-w-[9rem] truncate text-xs font-medium text-[#083b6c] sm:inline" title={user.email ?? undefined}>
+            {user.email}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="rounded-full border-[#083b6c]/25 px-3 text-[#083b6c] hover:bg-[#e6f9ff]"
+            onClick={() => void signOut()}
+          >
+            Sign out
+          </Button>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="rounded-full border-[#083b6c]/30 px-4 font-semibold text-[#083b6c] hover:bg-[#e6f9ff]"
+          onClick={() => openAuthModal({ title: "Sign in to ShoreDrop" })}
+        >
+          Log in
+        </Button>
+      )
+    ) : null;
+
   return (
     <nav className="fixed top-0 z-50 w-full border-b border-border/50 bg-white/85 backdrop-blur-md">
       <div className="container mx-auto flex items-center gap-4 px-4 py-3">
@@ -60,6 +95,7 @@ const SiteNav = () => {
             Get App
           </a>
           <CartDrawer />
+          {accountControl}
           <Button asChild size="sm" className="rounded-full bg-[#083b6c] px-5 hover:bg-[#0a4a85]">
             <Link href="/#services">Book Now</Link>
           </Button>
@@ -82,6 +118,7 @@ const SiteNav = () => {
             Orders
           </Link>
           <CartDrawer />
+          {accountControl}
           <Button asChild size="sm" className="rounded-full bg-[#083b6c] hover:bg-[#0a4a85]">
             <Link href="/#services">Book Now</Link>
           </Button>
