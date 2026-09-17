@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "./button";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 /** Homepage hero — ShoreDrop beach setup photo. */
 const HERO_IMAGE = "/assets/hero-beach.jpg";
@@ -73,17 +73,8 @@ const Hero = () => {
               <img
                 src={HERO_IMAGE}
                 alt="ShoreDrop beach setup with chairs, umbrella, and cooler"
-                className="h-[min(52svh,28rem)] w-full object-cover object-[center_42%] sm:h-[min(56svh,32rem)] lg:h-[min(72svh,36rem)] xl:h-[min(74svh,38rem)]"
+                className="h-[min(52svh,28rem)] w-full object-cover object-[center_40%] sm:h-[min(56svh,32rem)] lg:h-[min(72svh,36rem)] xl:h-[min(74svh,38rem)]"
               />
-            </div>
-            <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-2xl border border-white/60 bg-white/95 px-3 py-2.5 shadow-soft backdrop-blur sm:bottom-4 sm:left-4 sm:px-4 sm:py-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 sm:h-9 sm:w-9">
-                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-[#083b6c]">4.9</p>
-                <p className="text-[11px] text-muted-foreground sm:text-xs">Loved by beachgoers</p>
-              </div>
             </div>
           </div>
         </div>
