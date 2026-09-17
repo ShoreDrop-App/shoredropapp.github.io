@@ -696,7 +696,7 @@ export default function BookingClient() {
           <div className="space-y-5">
             <h2 className="text-2xl font-semibold text-[#083b6c]">Which beach?</h2>
             <p className="text-sm text-muted-foreground">
-              Virginia Beach or Panama City Beach (Bay County). Same packages — local drop spots next.
+              Virginia Beach or Panama City Beach. Same packages — local drop spots next.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {(["vb", "pcb"] as MarketId[]).map((id) => (
@@ -716,7 +716,7 @@ export default function BookingClient() {
                 >
                   <p className="font-bold text-[#083b6c]">{MARKETS[id].name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {id === "pcb" ? "Now serving Bay County, FL" : MARKETS[id].serviceAreaLabel}
+                    {id === "pcb" ? "Now serving Panama City Beach, FL" : MARKETS[id].serviceAreaLabel}
                   </p>
                 </button>
               ))}

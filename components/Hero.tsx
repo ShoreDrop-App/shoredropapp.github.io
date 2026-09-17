@@ -8,7 +8,7 @@ import { ArrowRight } from "lucide-react";
 const HERO_IMAGE = "/assets/hero-beach.jpg";
 
 const BOTTOM_POINTS = [
-  "Virginia Beach & Bay County coverage",
+  "Virginia Beach & Panama City Beach coverage",
   "Setup before you arrive",
   "Local & family-run",
 ] as const;
@@ -22,7 +22,7 @@ const Hero = () => {
           <div className="flex flex-col justify-center gap-4 lg:gap-5">
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#bbefff] bg-white/80 px-3 py-1 text-xs font-semibold tracking-wide text-[#083b6c]">
               <span className="h-1.5 w-1.5 rounded-full bg-[#3b82b6]" />
-              Live in Virginia Beach · Now serving Bay County, FL
+              Live in Virginia Beach · Now serving Panama City Beach, FL
             </span>
 
             <div className="space-y-3">

@@ -3,7 +3,7 @@ import { MapPin, Package, Sparkles, Users } from "lucide-react";
 const items = [
   { icon: Sparkles, label: "Setup before you arrive" },
   { icon: Package, label: "Packed up after you leave" },
-    { icon: MapPin, label: "Virginia Beach & Bay County, FL" },
+    { icon: MapPin, label: "Virginia Beach & Panama City Beach, FL" },
   { icon: Users, label: "Local & family-owned" },
 ];
 

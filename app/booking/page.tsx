@@ -4,7 +4,7 @@ import BookingClient from "../../components/booking/BookingClient";
 
 export const metadata: Metadata = {
   title: "Book Your Beach Day — ShoreDrop",
-  description: "Reserve beach gear delivery in Virginia Beach or Panama City Beach (Bay County). Packages, custom setups, and same-day on-demand.",
+  description: "Reserve beach gear delivery in Virginia Beach or Panama City Beach. Packages, custom setups, and same-day on-demand.",
   alternates: { canonical: "/booking" },
 };
 

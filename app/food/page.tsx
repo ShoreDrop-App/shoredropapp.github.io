@@ -8,7 +8,7 @@ import { FOOD_RESTAURANTS, FOOD_SCHEDULE_LABEL } from "../../lib/ordering/catalo
 
 export const metadata: Metadata = {
   title: "Food & Drinks — ShoreDrop",
-  description: "Order from Waterman's — delivered to your beach setup in Virginia Beach (not yet in Bay County).",
+  description: "Order from Waterman's — delivered to your beach setup in Virginia Beach (not yet in Panama City Beach).",
   alternates: { canonical: "/food" },
 };
 

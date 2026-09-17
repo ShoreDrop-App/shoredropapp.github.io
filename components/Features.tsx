@@ -12,7 +12,7 @@ const steps = [
     number: "2",
     icon: MapPin,
     title: "Choose your spot",
-    description: "Pick Virginia Beach or Panama City Beach (Bay County), then your street or beach access and setup time.",
+    description: "Pick Virginia Beach or Panama City Beach, then your street or beach access and setup time.",
   },
   {
     number: "3",
