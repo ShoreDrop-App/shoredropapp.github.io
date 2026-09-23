@@ -3,11 +3,12 @@ import type { MetadataRoute } from "next";
 export const dynamic = "force-static";
 
 import { SITE_URL } from "../lib/site-url";
+import { blogPosts } from "../lib/blog-posts";
 
 const BASE = SITE_URL;
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${BASE}/`,
       lastModified: "2026-04-21",
@@ -52,7 +53,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${BASE}/blog`,
-      lastModified: "2026-07-28",
+      lastModified: "2026-09-01",
       changeFrequency: "weekly",
       priority: 0.7,
     },
@@ -67,66 +68,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: "2026-08-31",
       changeFrequency: "monthly",
       priority: 0.75,
-    },
-    {
-      url: `${BASE}/blog/best-beaches-in-virginia-beach`,
-      lastModified: "2026-07-28",
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE}/blog/best-time-to-visit-virginia-beach`,
-      lastModified: "2026-07-28",
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE}/blog/how-to-keep-beach-umbrella-from-blowing-away`,
-      lastModified: "2026-07-28",
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE}/blog/beach-day-with-baby-toddler-virginia-beach`,
-      lastModified: "2026-07-28",
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE}/blog/virginia-beach-parking-beach-access-guide`,
-      lastModified: "2026-07-28",
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE}/blog/beach-chair-rental-virginia-beach`,
-      lastModified: "2026-05-27",
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE}/blog/what-to-bring-to-virginia-beach`,
-      lastModified: "2026-05-27",
-      changeFrequency: "monthly",
-      priority: 0.65,
-    },
-    {
-      url: `${BASE}/blog/food-delivery-to-the-beach`,
-      lastModified: "2026-05-27",
-      changeFrequency: "monthly",
-      priority: 0.65,
-    },
-    {
-      url: `${BASE}/blog/how-to-plan-a-private-beach-event-in-virginia-beach`,
-      lastModified: "2026-05-27",
-      changeFrequency: "monthly",
-      priority: 0.65,
-    },
-    {
-      url: `${BASE}/blog/ultimate-virginia-beach-family-vacation-guide-2026`,
-      lastModified: "2026-05-27",
-      changeFrequency: "monthly",
-      priority: 0.65,
     },
     {
       url: `${BASE}/privacy`,
@@ -171,4 +112,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
   ];
+
+  const blogRoutes: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${BASE}/blog/${post.slug}`,
+    lastModified: post.updatedAt ?? post.publishedAt,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
+  return [...staticRoutes, ...blogRoutes];
 }
