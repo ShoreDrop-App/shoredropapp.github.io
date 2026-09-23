@@ -1,18 +1,39 @@
+import { pcbBlogPosts } from "./pcb-blog-posts";
+
+export type BlogPostCategory =
+  | "Beach Tips"
+  | "Food Delivery"
+  | "Private Events"
+  | "Virginia Beach Tips"
+  | "Panama City Beach Tips";
+
 export type BlogPost = {
   slug: string;
   title: string;
+  /** Optional shorter <title>/og:title; falls back to title. */
+  seoTitle?: string;
   excerpt: string;
-  category: "Beach Tips" | "Food Delivery" | "Private Events" | "Virginia Beach Tips";
+  category: BlogPostCategory;
   publishedAt: string;
+  /** ISO date for dateModified / "Last updated" display. */
+  updatedAt?: string;
   image: string;
   imageAlt: string;
+  /** Bold first paragraph under the H1 (AI Overview answer). */
+  directAnswer?: string;
+  closingCta?: string;
+  relatedSlugs?: string[];
+  faqs?: Array<{ question: string; answer: string }>;
   sections: Array<{
     heading: string;
+    /** Default 2 (H2). Use 3 for H3 subsections. */
+    level?: 2 | 3;
     paragraphs: string[];
   }>;
 };
 
 export const blogPosts: BlogPost[] = [
+  ...pcbBlogPosts,
   {
     slug: "best-beaches-in-virginia-beach",
     title: "The Best Beaches in Virginia Beach: A Local's 2026 Guide",

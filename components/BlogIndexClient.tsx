@@ -3,7 +3,14 @@
 import { useMemo, useState } from "react";
 import { blogPosts, type BlogPost } from "../lib/blog-posts";
 
-const CHIPS = ["All", "Beach Tips", "Virginia Beach Tips", "Food Delivery", "Private Events"] as const;
+const CHIPS = [
+  "All",
+  "Beach Tips",
+  "Virginia Beach Tips",
+  "Panama City Beach Tips",
+  "Food Delivery",
+  "Private Events",
+] as const;
 type Chip = (typeof CHIPS)[number];
 
 function formatDate(date: string): string {
