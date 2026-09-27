@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: 40 33% 97%;
-  --foreground: 213 70% 18%;
+  --background: 40 47% 95%;
+  --foreground: 212 30% 17%;
   --card: 0 0% 100%;
-  --card-foreground: 213 70% 18%;
+  --card-foreground: 212 30% 17%;
   --popover: 0 0% 100%;
-  --popover-foreground: 213 70% 18%;
+  --popover-foreground: 212 30% 17%;
   --primary: 211 73% 38%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 213 70% 18%;
-  --muted: 210 30% 96%;
-  --muted-foreground: 215 16% 42%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 213 70% 18%;
+  --secondary: 40 40% 93%;
+  --secondary-foreground: 212 30% 17%;
+  --muted: 40 40% 93%;
+  --muted-foreground: 34 10% 31%;
+  --accent: 40 40% 93%;
+  --accent-foreground: 212 30% 17%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --border: 214 20% 90%;
-  --input: 214 20% 90%;
+  --border: 38 30% 86%;
+  --input: 38 30% 86%;
   --ring: 211 73% 38%;
   --radius: 0.75rem;
   --brand-navy: 213 70% 18%;
@@ -41,30 +41,50 @@
   --color-ocean-900: #083b6c;
   --color-ocean-400: #bbefff;
   --color-ocean-50: #e6f9ff;
-  --font-sans: var(--font-plus-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --color-sand-bg: #f8f4ec;
+  --color-sand-surface: #fdfbf7;
+  --color-sand: #efe5d3;
+  --color-ink: #1e2a38;
+  --color-ink-muted: #575047;
+  --color-navy: #1f3a5f;
+  --color-navy-deep: #182f4e;
+  --color-ochre: #b7773a;
+  --color-line: #e3d8c5;
+  --font-sans: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), "Newsreader", Georgia, serif;
+  --font-display: var(--font-newsreader), "Newsreader", Georgia, serif;
   --font-body: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
 }
 
-body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: var(--font-sans);
+@layer base {
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-newsreader), "Newsreader", Georgia, serif;
+    letter-spacing: -0.02em;
+  }
 }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-serif);
-  letter-spacing: -0.025em;
+html {
+  scroll-behavior: smooth;
+}
+
+[id] {
+  scroll-margin-top: 5rem;
 }
 
 .font-body {
-  font-family: var(--font-body);
+  font-family: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
 }
 
 .font-serif {
-  font-family: var(--font-serif);
+  font-family: var(--font-newsreader), "Newsreader", Georgia, serif;
 }
 
 .bg-hero-gradient {

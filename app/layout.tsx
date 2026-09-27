@@ -1,22 +1,17 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Sans, Plus_Jakarta_Sans } from "next/font/google";
+import { DM_Sans, Newsreader } from "next/font/google";
 import { Toaster } from "sonner";
 import Providers from "../components/Providers";
 import { SUPPORT_EMAIL, SUPPORT_PHONE_TEL } from "../lib/contact";
 import { SITE_URL } from "../lib/site-url";
 import "./globals.css";
 
-/** Match Lovable: Plus Jakarta (UI), Cormorant (display), DM Sans (body accent). */
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
+/** Sunlit Editorial: Newsreader (display serif), DM Sans (UI + body). */
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
 });
 
 const dmSans = DM_Sans({
@@ -96,7 +91,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${plusJakarta.variable} ${cormorant.variable} ${dmSans.variable} font-sans antialiased`}
+        className={`${newsreader.variable} ${dmSans.variable} font-sans antialiased`}
       >
         <script
           type="application/ld+json"

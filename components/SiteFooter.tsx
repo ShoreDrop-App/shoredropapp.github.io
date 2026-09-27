@@ -2,92 +2,105 @@ import { Instagram, Linkedin, Facebook } from "lucide-react";
 import { FaTiktok } from "react-icons/fa";
 import { IOS_APP_STORE_URL } from "../lib/app-links";
 
+type FooterLink = { href: string; label: string; external?: boolean };
+
+const COLUMNS: { title: string; links: FooterLink[] }[] = [
+  {
+    title: "Company",
+    links: [
+      { href: "/#services", label: "Book gear" },
+      { href: "/food", label: "Food & Drinks" },
+      { href: "/private-events", label: "Private Events" },
+      { href: "/mission", label: "Our mission" },
+      { href: "/blog", label: "Blog" },
+      { href: "/app", label: "Mobile app" },
+      { href: "/kiosk", label: "Kiosk for hotels" },
+      { href: IOS_APP_STORE_URL, label: "Get the app", external: true },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { href: "/support", label: "Help Center" },
+      { href: "/support", label: "Contact Us" },
+      { href: "#", label: "Partners" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { href: "/privacy", label: "Privacy" },
+      { href: "/sms", label: "SMS consent" },
+      { href: "/delete-account", label: "Delete account" },
+      { href: "/terms", label: "Terms" },
+      { href: "/cancellation", label: "Cancellation" },
+      { href: "/rental-policy", label: "Rental policy" },
+      { href: "/liability-waiver", label: "Liability waiver" },
+    ],
+  },
+];
+
+const SOCIALS = [
+  { href: "https://www.instagram.com/shoredropapp", label: "ShoreDrop on Instagram", Icon: Instagram },
+  { href: "https://www.facebook.com/share/1HH6Ak5ptN/?mibextid=LQQJ4d", label: "ShoreDrop on Facebook", Icon: Facebook },
+  { href: "https://www.tiktok.com/@shoredrop?_r=1&_t=ZT-945pDzsERR8", label: "ShoreDrop on TikTok", Icon: FaTiktok },
+  { href: "https://www.linkedin.com/company/shoredrop/", label: "ShoreDrop on LinkedIn", Icon: Linkedin },
+] as const;
+
 const SiteFooter = () => {
   return (
-    <footer className="bg-gray-100 py-16">
-      <div className="container mx-auto px--0">
-        <div className="grid md:grid-cols-4 gap-50">
-          <div className="space-y-5 flex-1">
-            <div className="flex items-center space-x-3">
-              <img
-                src="/lovable-uploads/dbf79a37-c86d-49c9-af90-9fe7b44058fc.jpg"
-                alt="ShoreDrop logo"
-                className="w-12 h-12"
-              />
-              <h3 className="text-lg font-medium text-ocean-deep">ShoreDrop</h3>
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+    <footer className="border-t border-line bg-sand-bg pb-10 pt-16 lg:pt-20">
+      <div className="mx-auto w-full max-w-[1280px] px-5 sm:px-8 lg:px-10">
+        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+          <div className="space-y-5">
+            <a href="/" className="flex items-center gap-2.5">
+              <img src="/assets/logo-mark.png" alt="" className="h-10 w-auto" />
+              <span className="font-display text-[1.75rem] leading-none text-ink">ShoreDrop</span>
+            </a>
+            <p className="max-w-xs font-display text-lg italic leading-snug text-ink">
               Premium and Affordable Beach Experiences Delivered with Care and Precision.
+            </p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ochre">
+              Virginia Beach, VA · Panama City Beach, FL
             </p>
           </div>
 
-          <div>
-            <h4 className="font-medium text-ocean-deep mb-4">Company</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><a href="/#services" className="hover:text-ocean-deep transition-colors">Book gear</a></li>
-              <li><a href="/food" className="hover:text-ocean-deep transition-colors">Food & Drinks</a></li>
-              <li><a href="/private-events" className="hover:text-ocean-deep transition-colors">Private Events</a></li>
-              <li><a href="/mission" className="hover:text-ocean-deep transition-colors">Our mission</a></li>
-              <li><a href="/blog" className="hover:text-ocean-deep transition-colors">Blog</a></li>
-              <li><a href="/app" className="hover:text-ocean-deep transition-colors">Mobile app</a></li>
-              <li><a href="/kiosk" className="hover:text-ocean-deep transition-colors">Kiosk for hotels</a></li>
-              <li>
-                <a
-                  href={IOS_APP_STORE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-ocean-deep transition-colors"
-                >
-                  Get the app
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-medium text-ocean-deep mb-4">Support</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><a href="/support" className="hover:text-ocean-deep transition-colors">Help Center</a></li>
-              <li><a href="/support" className="hover:text-ocean-deep transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-ocean-deep transition-colors">Partners</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-medium text-ocean-deep mb-4">Legal</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><a href="/privacy" className="hover:text-ocean-deep transition-colors">Privacy</a></li>
-              <li><a href="/sms" className="hover:text-ocean-deep transition-colors">SMS consent</a></li>
-              <li><a href="/delete-account" className="hover:text-ocean-deep transition-colors">Delete account</a></li>
-              <li><a href="/terms" className="hover:text-ocean-deep transition-colors">Terms</a></li>
-              <li><a href="/cancellation" className="hover:text-ocean-deep transition-colors">Cancellation</a></li>
-              <li><a href="/rental-policy" className="hover:text-ocean-deep transition-colors">Rental policy</a></li>
-              <li><a href="/liability-waiver" className="hover:text-ocean-deep transition-colors">Liability waiver</a></li>
-            </ul>
-          </div>
+          {COLUMNS.map((col) => (
+            <div key={col.title}>
+              <h4 className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">{col.title}</h4>
+              <ul className="mt-5 space-y-3 text-[15px] text-ink">
+                {col.links.map((l) => (
+                  <li key={`${col.title}-${l.label}`}>
+                    <a
+                      href={l.href}
+                      {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                      className="transition-colors hover:text-ochre"
+                    >
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        <div className="border-t border-gray-200 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-sm text-muted-foreground">2026 ShoreDrop. All rights reserved.</p>
-
-            <div className="flex items-center space-x-6">
-              <span className="text-sm font-medium text-ocean-deep">Follow Us</span>
-              <div className="flex space-x-4">
-                <a href="https://www.instagram.com/shoredropapp" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-ocean-deep transition-colors" aria-label="ShoreDrop on Instagram">
-                  <Instagram size={20} />
-                </a>
-                <a href="https://www.facebook.com/share/1HH6Ak5ptN/?mibextid=LQQJ4d" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-ocean-deep transition-colors" aria-label="ShoreDrop on Facebook">
-                  <Facebook size={20} />
-                </a>
-                <a href="https://www.tiktok.com/@shoredrop?_r=1&_t=ZT-945pDzsERR8" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-ocean-deep transition-colors" aria-label="ShoreDrop on TikTok">
-                  <FaTiktok size={20} />
-                </a>
-                <a href="https://www.linkedin.com/company/shoredrop/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-ocean-deep transition-colors" aria-label="ShoreDrop on LinkedIn">
-                  <Linkedin size={20} />
-                </a>
-              </div>
-            </div>
+        <div className="mt-14 flex flex-col items-start justify-between gap-5 border-t border-line pt-7 sm:flex-row sm:items-center">
+          <p className="text-sm text-ink-muted">© {new Date().getFullYear()} ShoreDrop. All rights reserved.</p>
+          <div className="flex items-center gap-5">
+            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">Follow us</span>
+            {SOCIALS.map(({ href, label, Icon }) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="text-ink transition-colors hover:text-ochre"
+              >
+                <Icon size={18} />
+              </a>
+            ))}
           </div>
         </div>
       </div>
